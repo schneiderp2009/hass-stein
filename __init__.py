@@ -1,19 +1,21 @@
-"""Switch platform for STEIN: toggle operationReservation."""
+"""Select platform for STEIN: change asset status directly from HA."""
 from __future__ import annotations
 
 import logging
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, STATUS_LABELS
 from .coordinator import SteinCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
+_LABEL_TO_STATUS = {v: k for k, v in STATUS_LABELS.items()}
 
 
 async def async_setup_entry(
@@ -24,7 +26,7 @@ async def async_setup_entry(
     coordinator: SteinCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = [
-        SteinOperationReservationSwitch(coordinator, asset_id)
+        SteinAssetStatusSelect(coordinator, asset_id)
         for asset_id in coordinator.assets
     ]
     async_add_entities(entities, True)
@@ -36,17 +38,18 @@ async def async_setup_entry(
         nonlocal known_ids
         new_ids = set(coordinator.assets.keys()) - known_ids
         if new_ids:
-            async_add_entities([SteinOperationReservationSwitch(coordinator, aid) for aid in new_ids])
+            async_add_entities([SteinAssetStatusSelect(coordinator, aid) for aid in new_ids])
         known_ids.update(new_ids)
 
     coordinator.async_add_listener(_handle_update)
 
 
-class SteinOperationReservationSwitch(CoordinatorEntity[SteinCoordinator], SwitchEntity):
-    """Switch to toggle operationReservation on a STEIN asset."""
+class SteinAssetStatusSelect(CoordinatorEntity[SteinCoordinator], SelectEntity):
+    """Select entity to change an asset's status."""
 
     _attr_has_entity_name = True
-    _attr_icon = "mdi:bookmark-check"
+    _attr_options = list(STATUS_LABELS.values())
+    _attr_icon = "mdi:list-status"
 
     def __init__(self, coordinator: SteinCoordinator, asset_id: int) -> None:
         super().__init__(coordinator)
@@ -58,36 +61,39 @@ class SteinOperationReservationSwitch(CoordinatorEntity[SteinCoordinator], Switc
 
     @property
     def unique_id(self) -> str:
-        return f"stein_asset_opreservation_{self._asset_id}"
+        return f"stein_asset_status_{self._asset_id}"
 
     @property
     def name(self) -> str:
         label = self._asset.get("label") or f"Asset {self._asset_id}"
-        return f"{label} – Einsatzreservierung"
+        return f"{label} – Status"
 
     @property
-    def is_on(self) -> bool:
-        return bool(self._asset.get("operationReservation", False))
+    def current_option(self) -> str | None:
+        return STATUS_LABELS.get(self._asset.get("status", ""))
 
-    async def async_turn_on(self, **kwargs) -> None:
-        await self._set_reservation(True)
+    async def async_select_option(self, option: str) -> None:
+        status = _LABEL_TO_STATUS.get(option)
+        if not status:
+            _LOGGER.error("Unknown status option: %s", option)
+            return
+        await self._update_asset({"status": status})
 
-    async def async_turn_off(self, **kwargs) -> None:
-        await self._set_reservation(False)
-
-    async def _set_reservation(self, value: bool) -> None:
+    async def _update_asset(self, changes: dict) -> None:
+        """Merge changes with current asset data and send PATCH."""
         asset = self._asset
         payload = {
             "buId": asset.get("buId"),
             "groupId": asset.get("groupId"),
             "label": asset.get("label", ""),
             "status": asset.get("status", "ready"),
-            "operationReservation": value,
         }
+        # Include all existing optional fields
         for field in ("name", "comment", "category", "radioName", "issi",
-                      "sortOrder", "huValidUntil"):
+                      "sortOrder", "operationReservation", "huValidUntil"):
             if asset.get(field) is not None:
                 payload[field] = asset[field]
+        payload.update(changes)
         await self.coordinator.api.update_asset(self._asset_id, payload)
         await self.coordinator.async_request_refresh()
 
