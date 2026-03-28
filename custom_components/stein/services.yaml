@@ -1,0 +1,45 @@
+update_asset_status:
+  name: Asset-Status aktualisieren
+  description: >
+    Setzt den Status eines STEIN-Assets über die API und aktualisiert
+    optional den Kommentar. Kann auch eine Radio-Benachrichtigung auslösen.
+  fields:
+    asset_id:
+      name: Asset-ID
+      description: Die numerische ID des Assets (aus dem Attribut id).
+      required: true
+      example: 42
+      selector:
+        number:
+          min: 1
+          mode: box
+    status:
+      name: Status
+      description: Der neue Status des Assets.
+      required: true
+      example: ready
+      selector:
+        select:
+          options:
+            - ready
+            - notready
+            - semiready
+            - inuse
+            - maint
+    comment:
+      name: Kommentar
+      description: Optionaler Kommentar zum Status (max. 25000 Zeichen).
+      required: false
+      example: "Ölwechsel abgeschlossen"
+      selector:
+        text:
+          multiline: true
+    notify_radio:
+      name: Radio-Benachrichtigung
+      description: >
+        Wenn true, wird eine E-Mail-Benachrichtigung bei Radio-Änderung
+        ausgelöst (nur relevant wenn radioName geändert wird).
+      required: false
+      default: false
+      selector:
+        boolean:
