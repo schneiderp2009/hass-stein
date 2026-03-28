@@ -6,7 +6,7 @@ CONF_BU_IDS = "bu_ids"
 CONF_SCAN_INTERVAL = "scan_interval"
 
 DEFAULT_SCAN_INTERVAL = 60  # seconds
-DEFAULT_API_BASE = "https://stein.app/api"
+DEFAULT_API_BASE = "https://stein.app"
 
 ATTR_LABEL = "label"
 ATTR_NAME = "name"
