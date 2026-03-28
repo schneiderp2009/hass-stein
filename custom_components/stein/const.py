@@ -4,9 +4,10 @@ DOMAIN = "stein"
 CONF_API_TOKEN = "api_token"
 CONF_BU_IDS = "bu_ids"
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_WEBHOOK_ENABLED = "webhook_enabled"
 
-DEFAULT_SCAN_INTERVAL = 60  # seconds
-DEFAULT_API_BASE = "https://stein.app"
+DEFAULT_SCAN_INTERVAL = 300  # 5 Minuten – Rate-Limit beachten (max 20 req/min)
+DEFAULT_API_BASE = "https://stein.app/api"  # Basis, Pfade beginnen mit /api/ext/...
 
 ATTR_LABEL = "label"
 ATTR_NAME = "name"

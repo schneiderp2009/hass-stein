@@ -1,6 +1,7 @@
 """STEIN API client."""
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -40,6 +41,7 @@ class SteinApi:
         }
 
     async def _get(self, path: str, params: Any = None) -> Any:
+        # Correct URL: https://stein.app/api + /api/ext/... = https://stein.app/api/api/ext/...
         url = f"{self._base}{path}"
         _LOGGER.debug("STEIN GET %s params=%s", url, params)
         try:
@@ -54,8 +56,6 @@ class SteinApi:
                 if resp.status >= 400:
                     raise SteinApiError(f"HTTP {resp.status}")
                 text = await resp.text()
-                _LOGGER.debug("STEIN GET %s → body: %s", url, text[:200])
-                import json
                 return json.loads(text)
         except (SteinAuthError, SteinApiError):
             raise
@@ -68,15 +68,16 @@ class SteinApi:
         _LOGGER.debug("STEIN PATCH %s", url)
         try:
             async with self._session.patch(
-                url, headers={**self._headers, "Content-Type": "application/json"},
-                json=data, params=params
+                url,
+                headers={**self._headers, "Content-Type": "application/json"},
+                json=data,
+                params=params,
             ) as resp:
                 _LOGGER.debug("STEIN PATCH %s → HTTP %s", url, resp.status)
                 if resp.status == 401:
                     raise SteinAuthError("Invalid API token")
                 if resp.status >= 400:
                     raise SteinApiError(f"HTTP {resp.status}")
-                import json
                 return json.loads(await resp.text())
         except (SteinAuthError, SteinApiError):
             raise
@@ -85,23 +86,23 @@ class SteinApi:
             raise SteinApiError(f"Error: {err}") from err
 
     async def get_userinfo(self) -> dict:
-        result = await self._get("/ext/userinfo")
+        result = await self._get("/api/ext/userinfo")
         return result or {}
 
     async def get_assets(self, bu_ids: list[int]) -> list[dict]:
         params = [("buIds", bid) for bid in bu_ids]
-        result = await self._get("/ext/assets/", params=params)
+        result = await self._get("/api/ext/assets/", params=params)
         return result or []
 
     async def get_asset(self, asset_id: int) -> dict | None:
-        return await self._get(f"/ext/assets/{asset_id}")
+        return await self._get(f"/api/ext/assets/{asset_id}")
 
     async def update_asset(self, asset_id: int, data: dict, notify_radio: bool = False) -> dict:
         params = {"notifyRadio": "true"} if notify_radio else None
-        return await self._patch(f"/ext/assets/{asset_id}", data, params)
+        return await self._patch(f"/api/ext/assets/{asset_id}", data, params)
 
     async def get_bu(self, bu_id: int) -> dict | None:
-        return await self._get(f"/ext/bu/{bu_id}")
+        return await self._get(f"/api/ext/bu/{bu_id}")
 
     async def test_connection(self) -> bool:
         _LOGGER.debug("STEIN testing connection to %s", self._base)
