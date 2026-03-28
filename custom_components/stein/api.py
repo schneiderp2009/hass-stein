@@ -40,29 +40,52 @@ class SteinApi:
             "Accept": "application/json",
         }
 
-    async def _get(self, path: str, params: dict | None = None) -> Any:
+    async def _get(self, path: str, params: Any = None) -> Any:
         url = f"{self._base}{path}"
+        _LOGGER.debug("STEIN GET %s params=%s", url, params)
         try:
-            async with self._session.get(url, headers=self._headers, params=params) as resp:
+            async with self._session.get(
+                url, headers=self._headers, params=params
+            ) as resp:
+                _LOGGER.debug("STEIN GET %s → HTTP %s", url, resp.status)
                 if resp.status == 401:
                     raise SteinAuthError("Invalid API token")
                 if resp.status == 404:
                     return None
                 resp.raise_for_status()
                 return await resp.json()
-        except aiohttp.ClientError as err:
+        except SteinAuthError:
+            raise
+        except aiohttp.ClientResponseError as err:
+            _LOGGER.error("STEIN HTTP error %s: %s", url, err.status)
+            raise SteinApiError(f"HTTP {err.status}") from err
+        except aiohttp.ClientConnectionError as err:
+            _LOGGER.error("STEIN connection error %s: %s", url, err)
             raise SteinApiError(f"Connection error: {err}") from err
+        except aiohttp.ClientError as err:
+            _LOGGER.error("STEIN client error %s: %s", url, err)
+            raise SteinApiError(f"Client error: {err}") from err
+        except Exception as err:
+            _LOGGER.error("STEIN unexpected error %s: %s (%s)", url, err, type(err).__name__)
+            raise SteinApiError(f"Unexpected error: {err}") from err
 
-    async def _patch(self, path: str, data: dict, params: dict | None = None) -> Any:
+    async def _patch(self, path: str, data: dict, params: Any = None) -> Any:
         url = f"{self._base}{path}"
+        _LOGGER.debug("STEIN PATCH %s", url)
         try:
-            async with self._session.patch(url, headers=self._headers, json=data, params=params) as resp:
+            async with self._session.patch(
+                url, headers=self._headers, json=data, params=params
+            ) as resp:
+                _LOGGER.debug("STEIN PATCH %s → HTTP %s", url, resp.status)
                 if resp.status == 401:
                     raise SteinAuthError("Invalid API token")
                 resp.raise_for_status()
                 return await resp.json()
-        except aiohttp.ClientError as err:
-            raise SteinApiError(f"Connection error: {err}") from err
+        except SteinAuthError:
+            raise
+        except Exception as err:
+            _LOGGER.error("STEIN PATCH %s failed: %s (%s)", url, err, type(err).__name__)
+            raise SteinApiError(f"Error: {err}") from err
 
     async def get_userinfo(self) -> dict:
         """Fetch info about the authenticated user."""
@@ -72,16 +95,8 @@ class SteinApi:
     async def get_assets(self, bu_ids: list[int]) -> list[dict]:
         """Fetch all assets for the given BU IDs."""
         params = [("buIds", bid) for bid in bu_ids]
-        # aiohttp supports list of tuples for repeated query params
-        url = f"{self._base}/ext/assets/"
-        try:
-            async with self._session.get(url, headers=self._headers, params=params) as resp:
-                if resp.status == 401:
-                    raise SteinAuthError("Invalid API token")
-                resp.raise_for_status()
-                return await resp.json()
-        except aiohttp.ClientError as err:
-            raise SteinApiError(f"Connection error: {err}") from err
+        result = await self._get("/ext/assets/", params=params)
+        return result or []
 
     async def get_asset(self, asset_id: int) -> dict | None:
         """Fetch a single asset by ID."""
@@ -94,7 +109,7 @@ class SteinApi:
         notify_radio: bool = False,
     ) -> dict:
         """Update an asset."""
-        params = {"notifyRadio": str(notify_radio).lower()} if notify_radio else None
+        params = {"notifyRadio": "true"} if notify_radio else None
         return await self._patch(f"/ext/assets/{asset_id}", data, params)
 
     async def get_bu(self, bu_id: int) -> dict | None:
@@ -103,12 +118,7 @@ class SteinApi:
 
     async def test_connection(self) -> bool:
         """Validate credentials by calling userinfo."""
-        try:
-            info = await self.get_userinfo()
-            _LOGGER.debug("STEIN userinfo response: %s", info)
-            return bool(info.get("name"))
-        except SteinAuthError:
-            raise
-        except SteinApiError as err:
-            _LOGGER.error("STEIN connection test failed: %s", err)
-            raise
+        _LOGGER.debug("STEIN testing connection to %s", self._base)
+        info = await self.get_userinfo()
+        _LOGGER.debug("STEIN userinfo: %s", info)
+        return bool(info.get("name"))
