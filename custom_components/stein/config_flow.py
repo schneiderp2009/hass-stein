@@ -57,10 +57,11 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         errors["base"] = "cannot_connect"
                 except SteinAuthError:
                     errors["base"] = "invalid_auth"
-                except SteinApiError:
+                except SteinApiError as err:
+                    _LOGGER.error("STEIN setup connection error: %s", err)
                     errors["base"] = "cannot_connect"
-                except Exception:
-                    _LOGGER.exception("Unexpected error during STEIN setup")
+                except Exception as err:
+                    _LOGGER.exception("Unexpected error during STEIN setup: %s", err)
                     errors["base"] = "unknown"
 
                 if not errors:

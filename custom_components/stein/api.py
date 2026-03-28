@@ -105,8 +105,10 @@ class SteinApi:
         """Validate credentials by calling userinfo."""
         try:
             info = await self.get_userinfo()
+            _LOGGER.debug("STEIN userinfo response: %s", info)
             return bool(info.get("name"))
         except SteinAuthError:
             raise
-        except SteinApiError:
-            return False
+        except SteinApiError as err:
+            _LOGGER.error("STEIN connection test failed: %s", err)
+            raise
