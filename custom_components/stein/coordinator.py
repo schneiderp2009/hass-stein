@@ -36,6 +36,8 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.assets: dict[int, dict] = {}
         # Keyed by bu id (int)
         self.bus: dict[int, dict] = {}
+        # Authenticated user info
+        self.userinfo: dict = {}
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from STEIN API."""
@@ -60,6 +62,14 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except SteinApiError as err:
                 _LOGGER.warning("Could not fetch BU %s: %s", bu_id, err)
 
+        # Fetch userinfo
+        try:
+            userinfo = await self.api.get_userinfo()
+        except SteinApiError as err:
+            _LOGGER.warning("Could not fetch userinfo: %s", err)
+            userinfo = self.userinfo  # keep last known
+
         self.assets = assets
         self.bus = bus
-        return {"assets": assets, "bus": bus}
+        self.userinfo = userinfo
+        return {"assets": assets, "bus": bus, "userinfo": userinfo}

@@ -41,6 +41,9 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = []
 
+    # Userinfo sensor
+    entities.append(SteinUserinfoSensor(coordinator))
+
     # Asset sensors
     for asset_id, asset in coordinator.assets.items():
         entities.append(SteinAssetSensor(coordinator, asset_id))
@@ -201,6 +204,12 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
         return {
             "bu_name": bu.get("name"),
             "bu_code": bu.get("code"),
+            "region_id": bu.get("regionId"),
+            "comment": bu.get("comment"),
+            "author": bu.get("author"),
+            "last_modified": bu.get("lastModified"),
+            "email_status_change_enabled": bu.get("emailStatusChangeEnabled"),
+            "fs_sort_order": bu.get("fsSortOrder"),
             "stats": bu.get("stats", {}),
             "local_counts": counts,
         }
@@ -213,4 +222,48 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
             name=bu_name,
             manufacturer="STEIN",
             model="Bereitschaft",
+        )
+
+class SteinUserinfoSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
+    """Sensor showing info about the authenticated STEIN API user."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:account-circle"
+
+    @property
+    def unique_id(self) -> str:
+        return "stein_userinfo"
+
+    @property
+    def name(self) -> str:
+        return "STEIN Verbindung"
+
+    @property
+    def state(self) -> str:
+        return self.coordinator.userinfo.get("name", "Unbekannt")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        u = self.coordinator.userinfo
+        scope_role = u.get("scopeRole", {})
+        return {
+            "id": u.get("id"),
+            "name": u.get("name"),
+            "email": u.get("email"),
+            "scope": u.get("scope"),
+            "tech_user": u.get("techUser"),
+            "active": u.get("active"),
+            "scope_role_entity": scope_role.get("entity"),
+            "scope_role_permission": scope_role.get("permission"),
+            "scope_role_entity_id": scope_role.get("entityId"),
+        }
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={(DOMAIN, "stein_connection")},
+            name="STEIN API",
+            manufacturer="STEIN",
+            model="API Verbindung",
+            entry_type="service",
         )
