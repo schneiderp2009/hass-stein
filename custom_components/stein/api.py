@@ -36,7 +36,6 @@ class SteinApi:
     def _headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._token}",
-            "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
@@ -52,72 +51,59 @@ class SteinApi:
                     raise SteinAuthError("Invalid API token")
                 if resp.status == 404:
                     return None
-                resp.raise_for_status()
-                return await resp.json()
-        except SteinAuthError:
+                if resp.status >= 400:
+                    raise SteinApiError(f"HTTP {resp.status}")
+                text = await resp.text()
+                _LOGGER.debug("STEIN GET %s → body: %s", url, text[:200])
+                import json
+                return json.loads(text)
+        except (SteinAuthError, SteinApiError):
             raise
-        except aiohttp.ClientResponseError as err:
-            _LOGGER.error("STEIN HTTP error %s: %s", url, err.status)
-            raise SteinApiError(f"HTTP {err.status}") from err
-        except aiohttp.ClientConnectionError as err:
-            _LOGGER.error("STEIN connection error %s: %s", url, err)
-            raise SteinApiError(f"Connection error: {err}") from err
-        except aiohttp.ClientError as err:
-            _LOGGER.error("STEIN client error %s: %s", url, err)
-            raise SteinApiError(f"Client error: {err}") from err
         except Exception as err:
-            _LOGGER.error("STEIN unexpected error %s: %s (%s)", url, err, type(err).__name__)
-            raise SteinApiError(f"Unexpected error: {err}") from err
+            _LOGGER.error("STEIN GET %s failed: %s (%s)", url, err, type(err).__name__)
+            raise SteinApiError(f"Error: {err}") from err
 
     async def _patch(self, path: str, data: dict, params: Any = None) -> Any:
         url = f"{self._base}{path}"
         _LOGGER.debug("STEIN PATCH %s", url)
         try:
             async with self._session.patch(
-                url, headers=self._headers, json=data, params=params
+                url, headers={**self._headers, "Content-Type": "application/json"},
+                json=data, params=params
             ) as resp:
                 _LOGGER.debug("STEIN PATCH %s → HTTP %s", url, resp.status)
                 if resp.status == 401:
                     raise SteinAuthError("Invalid API token")
-                resp.raise_for_status()
-                return await resp.json()
-        except SteinAuthError:
+                if resp.status >= 400:
+                    raise SteinApiError(f"HTTP {resp.status}")
+                import json
+                return json.loads(await resp.text())
+        except (SteinAuthError, SteinApiError):
             raise
         except Exception as err:
             _LOGGER.error("STEIN PATCH %s failed: %s (%s)", url, err, type(err).__name__)
             raise SteinApiError(f"Error: {err}") from err
 
     async def get_userinfo(self) -> dict:
-        """Fetch info about the authenticated user."""
         result = await self._get("/ext/userinfo")
         return result or {}
 
     async def get_assets(self, bu_ids: list[int]) -> list[dict]:
-        """Fetch all assets for the given BU IDs."""
         params = [("buIds", bid) for bid in bu_ids]
         result = await self._get("/ext/assets/", params=params)
         return result or []
 
     async def get_asset(self, asset_id: int) -> dict | None:
-        """Fetch a single asset by ID."""
         return await self._get(f"/ext/assets/{asset_id}")
 
-    async def update_asset(
-        self,
-        asset_id: int,
-        data: dict,
-        notify_radio: bool = False,
-    ) -> dict:
-        """Update an asset."""
+    async def update_asset(self, asset_id: int, data: dict, notify_radio: bool = False) -> dict:
         params = {"notifyRadio": "true"} if notify_radio else None
         return await self._patch(f"/ext/assets/{asset_id}", data, params)
 
     async def get_bu(self, bu_id: int) -> dict | None:
-        """Fetch a BU by ID."""
         return await self._get(f"/ext/bu/{bu_id}")
 
     async def test_connection(self) -> bool:
-        """Validate credentials by calling userinfo."""
         _LOGGER.debug("STEIN testing connection to %s", self._base)
         info = await self.get_userinfo()
         _LOGGER.debug("STEIN userinfo: %s", info)
