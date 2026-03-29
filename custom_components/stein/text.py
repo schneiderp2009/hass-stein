@@ -1,134 +1,87 @@
-"""Text platform for STEIN: edit asset text fields directly from HA."""
+"""Text platform for STEIN."""
 from __future__ import annotations
-
 import logging
-
 from homeassistant.components.text import TextEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from .const import DOMAIN
 from .coordinator import SteinCoordinator
+from .sensor import _asset_device
 
 _LOGGER = logging.getLogger(__name__)
 
-
-# Field definitions: (unique_suffix, api_field, friendly_name, max_length, icon)
-_TEXT_FIELDS = [
-    ("label",     "label",     "Bezeichnung",  255, "mdi:tag"),
-    ("name",      "name",      "Name",         255, "mdi:rename-box"),
-    ("comment",   "comment",   "Kommentar",  25000, "mdi:comment-text"),
-    ("category",  "category",  "Kategorie",     45, "mdi:shape"),
-    ("radioname", "radioName", "Funkrufname",  255, "mdi:radio"),
-    ("issi",      "issi",      "ISSI",         255, "mdi:signal"),
+_FIELDS = [
+    ("label",     "label",     "Bezeichnung",  255,   "mdi:tag",          None),
+    ("name",      "name",      "Name",         255,   "mdi:rename-box",   None),
+    ("comment",   "comment",   "Kommentar",  25000,   "mdi:comment-text", None),
+    ("category",  "category",  "Kategorie",     45,   "mdi:shape",        None),
+    ("radioname", "radioName", "Funkrufname",  255,   "mdi:radio",        None),
+    ("issi",      "issi",      "ISSI",         255,   "mdi:signal",       EntityCategory.CONFIG),
 ]
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: SteinCoordinator = hass.data[DOMAIN][entry.entry_id]
-
     entities = []
-    for asset_id in coordinator.assets:
-        for suffix, api_field, fname, maxlen, icon in _TEXT_FIELDS:
-            entities.append(
-                SteinAssetTextField(coordinator, asset_id, suffix, api_field, fname, maxlen, icon)
-            )
-
+    for aid in coordinator.assets:
+        for suffix, api_field, fname, maxlen, icon, cat in _FIELDS:
+            entities.append(SteinAssetTextField(coordinator, aid, suffix, api_field, fname, maxlen, icon, cat))
     async_add_entities(entities, True)
-
-    known_ids: set[int] = set(coordinator.assets.keys())
+    known: set[int] = set(coordinator.assets.keys())
 
     @callback
     def _handle_update() -> None:
-        nonlocal known_ids
-        new_ids = set(coordinator.assets.keys()) - known_ids
-        if new_ids:
-            new_entities = []
-            for asset_id in new_ids:
-                for suffix, api_field, fname, maxlen, icon in _TEXT_FIELDS:
-                    new_entities.append(
-                        SteinAssetTextField(coordinator, asset_id, suffix, api_field, fname, maxlen, icon)
-                    )
-            async_add_entities(new_entities)
-        known_ids.update(new_ids)
-
+        nonlocal known
+        new = set(coordinator.assets.keys()) - known
+        if new:
+            new_e = []
+            for aid in new:
+                for suffix, api_field, fname, maxlen, icon, cat in _FIELDS:
+                    new_e.append(SteinAssetTextField(coordinator, aid, suffix, api_field, fname, maxlen, icon, cat))
+            async_add_entities(new_e)
+        known.update(new)
     coordinator.async_add_listener(_handle_update)
 
 
 class SteinAssetTextField(CoordinatorEntity[SteinCoordinator], TextEntity):
-    """Text entity for a single editable field of a STEIN asset."""
-
     _attr_has_entity_name = True
 
-    def __init__(
-        self,
-        coordinator: SteinCoordinator,
-        asset_id: int,
-        field_suffix: str,
-        api_field: str,
-        friendly_name: str,
-        max_length: int,
-        icon: str,
-    ) -> None:
+    def __init__(self, coordinator, asset_id, field_suffix, api_field, friendly_name, max_length, icon, entity_category):
         super().__init__(coordinator)
         self._asset_id = asset_id
         self._api_field = api_field
         self._friendly_name = friendly_name
         self._attr_native_max = max_length
         self._attr_icon = icon
+        self._attr_entity_category = entity_category
         self._field_suffix = field_suffix
 
     @property
-    def _asset(self) -> dict:
-        return self.coordinator.assets.get(self._asset_id, {})
+    def _asset(self): return self.coordinator.assets.get(self._asset_id, {})
 
     @property
-    def unique_id(self) -> str:
-        return f"stein_asset_{self._field_suffix}_{self._asset_id}"
+    def unique_id(self): return f"stein_asset_{self._asset_id}_text_{self._field_suffix}"
 
     @property
-    def name(self) -> str:
-        label = self._asset.get("label") or f"Asset {self._asset_id}"
-        return f"{label} – {self._friendly_name}"
+    def name(self): return self._friendly_name
 
     @property
-    def native_value(self) -> str:
-        return self._asset.get(self._api_field) or ""
+    def native_value(self): return self._asset.get(self._api_field) or ""
 
     async def async_set_value(self, value: str) -> None:
-        asset = self._asset
-        payload = {
-            "buId": asset.get("buId"),
-            "groupId": asset.get("groupId"),
-            "label": asset.get("label", ""),
-            "status": asset.get("status", "ready"),
-        }
-        for field in ("name", "comment", "category", "radioName", "issi",
-                      "sortOrder", "operationReservation", "huValidUntil"):
-            if asset.get(field) is not None:
-                payload[field] = asset[field]
+        a = self._asset
+        payload = {"buId": a.get("buId"), "groupId": a.get("groupId"), "label": a.get("label",""), "status": a.get("status","ready")}
+        for f in ("name","comment","category","radioName","issi","sortOrder","operationReservation","huValidUntil"):
+            if a.get(f) is not None: payload[f] = a[f]
         payload[self._api_field] = value
         await self.coordinator.api.update_asset(self._asset_id, payload)
         await self.coordinator.async_request_refresh()
 
     @property
-    def device_info(self) -> DeviceInfo:
-        bu_id = self._asset.get("buId", "?")
-        bu = self.coordinator.bus.get(bu_id, {})
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"bu_{bu_id}")},
-            name=bu.get("name", f"BU {bu_id}"),
-            manufacturer="STEIN",
-            model="Bereitschaft",
-        )
+    def device_info(self): return _asset_device(self._asset, self.coordinator)
 
     @property
-    def available(self) -> bool:
-        return self._asset_id in self.coordinator.assets
+    def available(self): return self._asset_id in self.coordinator.assets

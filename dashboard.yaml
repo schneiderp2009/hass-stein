@@ -1,0 +1,427 @@
+# ============================================================
+# STEIN Dashboard für Home Assistant
+# Voraussetzungen:
+#   - HACS: mushroom, auto-entities, layout-card, card-mod
+#   - custom:mushroom-*, custom:auto-entities, custom:layout-card
+#
+# Installation:
+#   Einstellungen → Dashboards → Dashboard hinzufügen → YAML-Modus
+#   Diesen Inhalt als dashboard.yaml einfügen.
+#
+# Entitäts-IDs anpassen:
+#   Ersetze "19" mit deiner BU-ID
+#   Ersetze Asset-Labels (lf1, gkw_i usw.) mit deinen Labels
+# ============================================================
+
+title: STEIN Einsatzbereitschaft
+views:
+
+# ============================================================
+# VIEW 1: ÜBERSICHT
+# ============================================================
+  - title: Übersicht
+    path: uebersicht
+    icon: mdi:garage
+    type: custom:masonry-layout
+    cards:
+
+      # --- Titelzeile mit letzter Aktualisierung ---
+      - type: custom:mushroom-title-card
+        title: "🚒 Einsatzbereitschaft"
+        subtitle: >
+          {{ states('sensor.stein_verbindung') }} ·
+          {% set total = states('sensor.stein_bu_19_fahrzeuge_gesamt') | int(0) %}
+          {% set ready = states('sensor.stein_bu_19_anzahl_einsatzbereit') | int(0) %}
+          {{ ready }}/{{ total }} einsatzbereit
+
+      # --- BU Statistik-Kacheln ---
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "{{ states('sensor.stein_bu_19_anzahl_einsatzbereit') }}"
+            secondary: Einsatzbereit
+            icon: mdi:check-circle
+            icon_color: green
+            layout: vertical
+            tap_action:
+              action: navigate
+              navigation_path: /stein/uebersicht
+
+          - type: custom:mushroom-template-card
+            primary: "{{ states('sensor.stein_bu_19_anzahl_nicht_einsatzbereit') }}"
+            secondary: Nicht bereit
+            icon: mdi:close-circle
+            icon_color: red
+            layout: vertical
+
+          - type: custom:mushroom-template-card
+            primary: "{{ states('sensor.stein_bu_19_anzahl_bedingt_einsatzbereit') }}"
+            secondary: Bedingt
+            icon: mdi:alert-circle
+            icon_color: orange
+            layout: vertical
+
+          - type: custom:mushroom-template-card
+            primary: "{{ states('sensor.stein_bu_19_anzahl_im_einsatz') }}"
+            secondary: Im Einsatz
+            icon: mdi:fire-truck
+            icon_color: blue
+            layout: vertical
+
+          - type: custom:mushroom-template-card
+            primary: "{{ states('sensor.stein_bu_19_anzahl_in_wartung') }}"
+            secondary: Wartung
+            icon: mdi:wrench
+            icon_color: purple
+            layout: vertical
+
+      # --- Einsatzbereitschaft Balken ---
+      - type: custom:mushroom-template-card
+        primary: Einsatzbereitschaft
+        secondary: >
+          {% set total = states('sensor.stein_bu_19_fahrzeuge_gesamt') | int(0) %}
+          {% set ready = states('sensor.stein_bu_19_anzahl_einsatzbereit') | int(0) %}
+          {% if total > 0 %}{{ ((ready / total) * 100) | round(0) }}% der Ressourcen verfügbar{% else %}Keine Daten{% endif %}
+        icon: mdi:chart-bar
+        badge_icon: >
+          {% set total = states('sensor.stein_bu_19_fahrzeuge_gesamt') | int(0) %}
+          {% set ready = states('sensor.stein_bu_19_anzahl_einsatzbereit') | int(0) %}
+          {% if total > 0 and (ready / total) >= 0.75 %}mdi:thumb-up
+          {% elif total > 0 and (ready / total) >= 0.5 %}mdi:alert
+          {% else %}mdi:thumb-down{% endif %}
+        badge_color: >
+          {% set total = states('sensor.stein_bu_19_fahrzeuge_gesamt') | int(0) %}
+          {% set ready = states('sensor.stein_bu_19_anzahl_einsatzbereit') | int(0) %}
+          {% if total > 0 and (ready / total) >= 0.75 %}green
+          {% elif total > 0 and (ready / total) >= 0.5 %}orange
+          {% else %}red{% endif %}
+
+      # --- HU-Warnungen (automatisch alle Assets mit ablaufender HU) ---
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "⚠ HU-Hinweise"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              attributes:
+                hu_valid_until: "*"
+          template: >
+            {% set hu = state_attr(config.entity, 'hu_valid_until') %}
+            {% if hu %}
+              {% set days = ((as_timestamp(hu) - as_timestamp(now())) / 86400) | round(0) %}
+              {{ days < 90 }}
+            {% else %}
+              false
+            {% endif %}
+        sort:
+          method: attribute
+          attribute: hu_valid_until
+
+      # --- Alle Assets: Auto-Entities nach Status gefärbt ---
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Alle Ressourcen
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+        sort:
+          method: attribute
+          attribute: sort_order
+        card_mod:
+          style: |
+            .card-content {
+              padding: 0;
+            }
+
+# ============================================================
+# VIEW 2: NACH GRUPPE
+# ============================================================
+  - title: Gruppen
+    path: gruppen
+    icon: mdi:folder-multiple
+    type: custom:masonry-layout
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: Ressourcen nach Gruppe
+
+      # Gruppe Fahrzeuge
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "🚒 Fahrzeuge"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              attributes:
+                group_id: 10
+        sort:
+          method: attribute
+          attribute: sort_order
+
+      # Gruppe Anhänger
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "🚛 Anhänger"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              attributes:
+                group_id: 11
+        sort:
+          method: attribute
+          attribute: sort_order
+
+      # Gruppe Geräte
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "🔧 Geräte"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              attributes:
+                group_id: 12
+        sort:
+          method: attribute
+          attribute: sort_order
+
+# ============================================================
+# VIEW 3: IM EINSATZ / NICHT BEREIT
+# ============================================================
+  - title: Lage
+    path: lage
+    icon: mdi:alert
+    type: custom:masonry-layout
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: Aktuelle Lage
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "🔴 Im Einsatz"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              state: "Im Einsatz"
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "⚠ Bedingt einsatzbereit"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              state: "Bedingt einsatzbereit"
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "❌ Nicht einsatzbereit"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              state: "Nicht einsatzbereit"
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: "🔧 In Wartung"
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: "sensor.stein_*_status"
+              state: "In Wartung"
+
+# ============================================================
+# VIEW 4: ASSET DETAIL (Beispiel für GKW I – für jedes Asset duplizieren)
+# ============================================================
+  - title: GKW I
+    path: gkw-i
+    icon: mdi:fire-truck
+    type: custom:masonry-layout
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "{{ state_attr('sensor.stein_gkw_i_status', 'label') }}"
+        subtitle: "{{ state_attr('sensor.stein_gkw_i_status', 'name') }}"
+
+      # Status-Badge groß
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.stein_gkw_i_status') }}"
+        secondary: >
+          {% set hu = state_attr('sensor.stein_gkw_i_status', 'hu_valid_until') %}
+          {% if hu %}
+            HU: {{ as_timestamp(hu) | timestamp_custom('%d.%m.%Y') }}
+            ({% set days = ((as_timestamp(hu) - as_timestamp(now())) / 86400) | round(0) %}
+            {% if days < 0 %}abgelaufen!{% else %}noch {{ days }} Tage{% endif %})
+          {% endif %}
+        icon: mdi:fire-truck
+        icon_color: >
+          {% set s = state_attr('sensor.stein_gkw_i_status', 'status_raw') %}
+          {% if s == 'ready' %}green
+          {% elif s == 'notready' %}red
+          {% elif s == 'semiready' %}orange
+          {% elif s == 'inuse' %}blue
+          {% else %}purple{% endif %}
+        badge_icon: >
+          {% if state_attr('sensor.stein_gkw_i_status', 'operation_reservation') %}mdi:bookmark-check{% endif %}
+        badge_color: blue
+
+      # Status ändern
+      - type: entities
+        title: Status ändern
+        entities:
+          - entity: select.stein_gkw_i_status_setzen
+            name: Status
+          - entity: switch.stein_gkw_i_einsatzreservierung
+            name: Einsatzreservierung
+
+      # Felder bearbeiten
+      - type: entities
+        title: Felder bearbeiten
+        entities:
+          - entity: text.stein_gkw_i_bezeichnung
+            name: Bezeichnung
+          - entity: text.stein_gkw_i_name
+            name: Name
+          - entity: text.stein_gkw_i_funkrufname
+            name: Funkrufname
+          - entity: text.stein_gkw_i_issi
+            name: ISSI
+          - entity: text.stein_gkw_i_kategorie
+            name: Kategorie
+          - entity: text.stein_gkw_i_kommentar
+            name: Kommentar
+
+      # Metadaten (read-only)
+      - type: entities
+        title: Informationen
+        entities:
+          - type: attribute
+            entity: sensor.stein_gkw_i_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.stein_gkw_i_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.stein_gkw_i_status
+            attribute: last_modified
+            name: Letzte Änderung
+            icon: mdi:clock-edit
+          - type: attribute
+            entity: sensor.stein_gkw_i_status
+            attribute: last_modified_by
+            name: Geändert von
+            icon: mdi:account-edit
+          - type: attribute
+            entity: sensor.stein_gkw_i_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+# ============================================================
+# VIEW 5: ORTSVERBAND INFO
+# ============================================================
+  - title: Ortsverband
+    path: ortsverband
+    icon: mdi:home-group
+    type: custom:masonry-layout
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "{{ state_attr('sensor.stein_bu_19_fahrzeuge_gesamt', 'bu_name') }}"
+        subtitle: "{{ state_attr('sensor.stein_bu_19_fahrzeuge_gesamt', 'bu_code') }}"
+
+      - type: entities
+        title: Ortsverband Details
+        entities:
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: bu_name
+            name: Name
+            icon: mdi:home-group
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: bu_code
+            name: Kürzel
+            icon: mdi:identifier
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: region_id
+            name: Region
+            icon: mdi:map-marker
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: author
+            name: Erstellt von
+            icon: mdi:account
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: last_modified
+            name: Letzte Änderung
+            icon: mdi:clock-edit
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: email_status_change_enabled
+            name: E-Mail bei Statusänderung
+            icon: mdi:email-check
+          - type: attribute
+            entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: entities
+        title: Statistiken
+        entities:
+          - entity: sensor.stein_bu_19_fahrzeuge_gesamt
+            name: Fahrzeuge gesamt
+          - entity: sensor.stein_bu_19_anzahl_einsatzbereit
+            name: Einsatzbereit
+          - entity: sensor.stein_bu_19_anzahl_nicht_einsatzbereit
+            name: Nicht einsatzbereit
+          - entity: sensor.stein_bu_19_anzahl_bedingt_einsatzbereit
+            name: Bedingt einsatzbereit
+          - entity: sensor.stein_bu_19_anzahl_im_einsatz
+            name: Im Einsatz
+          - entity: sensor.stein_bu_19_anzahl_in_wartung
+            name: In Wartung
+
+      - type: entities
+        title: API Verbindung
+        entities:
+          - entity: sensor.stein_verbindung
+            name: API Nutzer
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: email
+            name: E-Mail
+            icon: mdi:email
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: scope
+            name: Zugriffsbereich
+            icon: mdi:shield-account
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: active
+            name: Aktiv
+            icon: mdi:check-circle
