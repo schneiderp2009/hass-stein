@@ -1,4 +1,3 @@
-import re
 """Switch platform for STEIN."""
 from __future__ import annotations
 import logging
@@ -9,7 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import SteinCoordinator
-from .sensor import _asset_device
+from .sensor import _asset_device, _label_slug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,39 +32,46 @@ class SteinOperationReservationSwitch(CoordinatorEntity[SteinCoordinator], Switc
     _attr_has_entity_name = True
     _attr_icon = "mdi:bookmark-check"
 
-    def __init__(self, coordinator, asset_id):
+    def __init__(self, coordinator: SteinCoordinator, asset_id: int) -> None:
         super().__init__(coordinator)
         self._asset_id = asset_id
-        _asset = coordinator.assets.get(asset_id, {})
-        _label = _asset.get("label", f"asset_{asset_id}")
-        _slug = re.sub(r"[^a-z0-9]+", "_", _label.lower()).strip("_")
-        self.entity_id = f"switch.stein_{_slug}_einsatzreservierung"
+        asset = coordinator.assets.get(asset_id, {})
+        label = asset.get("label") or f"asset_{asset_id}"
+        slug = _label_slug(label)
+        self._attr_unique_id = f"stein_asset_{asset_id}_switch_opreservation"
+        self.entity_id = f"switch.stein_{slug}_einsatzreservierung"
 
     @property
-    def _asset(self): return self.coordinator.assets.get(self._asset_id, {})
+    def _asset(self) -> dict:
+        return self.coordinator.assets.get(self._asset_id, {})
 
     @property
-    def unique_id(self): return f"stein_asset_{self._asset_id}_switch_opreservation"
+    def name(self) -> str:
+        return "Einsatzreservierung"
 
     @property
-    def name(self): return "Einsatzreservierung"
+    def is_on(self) -> bool:
+        return bool(self._asset.get("operationReservation", False))
 
-    @property
-    def is_on(self): return bool(self._asset.get("operationReservation", False))
+    async def async_turn_on(self, **kwargs) -> None:
+        await self._set(True)
 
-    async def async_turn_on(self, **kwargs): await self._set(True)
-    async def async_turn_off(self, **kwargs): await self._set(False)
+    async def async_turn_off(self, **kwargs) -> None:
+        await self._set(False)
 
     async def _set(self, value: bool) -> None:
         a = self._asset
-        payload = {"buId": a.get("buId"), "groupId": a.get("groupId"), "label": a.get("label",""), "status": a.get("status","ready"), "operationReservation": value}
-        for f in ("name","comment","category","radioName","issi","sortOrder","huValidUntil"):
-            if a.get(f) is not None: payload[f] = a[f]
+        payload = {"buId": a.get("buId"), "groupId": a.get("groupId"), "label": a.get("label", ""), "status": a.get("status", "ready"), "operationReservation": value}
+        for f in ("name", "comment", "category", "radioName", "issi", "sortOrder", "huValidUntil"):
+            if a.get(f) is not None:
+                payload[f] = a[f]
         await self.coordinator.api.update_asset(self._asset_id, payload)
         await self.coordinator.async_request_refresh()
 
     @property
-    def device_info(self): return _asset_device(self._asset, self.coordinator)
+    def device_info(self):
+        return _asset_device(self._asset, self.coordinator)
 
     @property
-    def available(self): return self._asset_id in self.coordinator.assets
+    def available(self) -> bool:
+        return self._asset_id in self.coordinator.assets

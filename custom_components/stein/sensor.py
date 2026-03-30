@@ -1,6 +1,7 @@
 """Sensor platform for STEIN."""
 from __future__ import annotations
 import logging
+import re
 from typing import Any
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -14,12 +15,16 @@ from .coordinator import SteinCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
+def _label_slug(label: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+
+
 def _asset_device(asset: dict, coordinator: SteinCoordinator) -> DeviceInfo:
     bu_id = asset.get("buId", "?")
     bu = coordinator.bus.get(bu_id, {})
-    label = asset.get("label") or f"Asset {asset['id']}"
+    label = asset.get("label") or f"Asset {asset.get('id', '?')}"
     return DeviceInfo(
-        identifiers={(DOMAIN, f"asset_{asset['id']}")},
+        identifiers={(DOMAIN, f"asset_{asset.get('id')}")},
         name=f"STEIN {label}",
         manufacturer="STEIN",
         model=asset.get("category") or "Asset",
@@ -30,8 +35,8 @@ def _asset_device(asset: dict, coordinator: SteinCoordinator) -> DeviceInfo:
 
 def _bu_device(bu: dict) -> DeviceInfo:
     return DeviceInfo(
-        identifiers={(DOMAIN, f"bu_{bu['id']}") },
-        name=f"STEIN BU {bu.get('name', bu['id'])}",
+        identifiers={(DOMAIN, f"bu_{bu.get('id')}")},
+        name=f"STEIN BU {bu.get('name', bu.get('id', '?'))}",
         manufacturer="STEIN",
         model="Ortsverband",
     )
@@ -79,7 +84,6 @@ async def async_setup_entry(
 
 
 class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """Main status sensor per asset – state is the German status label."""
     _attr_has_entity_name = True
     _attr_icon = "mdi:fire-truck"
 
@@ -87,19 +91,14 @@ class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
         super().__init__(coordinator)
         self._asset_id = asset_id
         asset = coordinator.assets.get(asset_id, {})
-        label = asset.get("label", f"asset_{asset_id}")
-        import re
-        slug = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+        label = asset.get("label") or f"asset_{asset_id}"
+        slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_status"
         self.entity_id = f"sensor.stein_{slug}_status"
 
     @property
     def _asset(self) -> dict:
         return self.coordinator.assets.get(self._asset_id, {})
-
-    @property
-    def unique_id(self) -> str:
-        return f"stein_asset_{self._asset_id}_status"
 
     @property
     def name(self) -> str:
@@ -123,24 +122,24 @@ class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         a = self._asset
         return {
-            "id":                   a.get("id"),
-            "bu_id":                a.get("buId"),
-            "group_id":             a.get("groupId"),
-            "label":                a.get("label"),
-            "name":                 a.get("name"),
-            "status_raw":           a.get("status"),
-            "status_label":         STATUS_LABELS.get(a.get("status", ""), a.get("status")),
-            "category":             a.get("category"),
-            "radio_name":           a.get("radioName"),
-            "issi":                 a.get("issi"),
-            "comment":              a.get("comment"),
-            "sort_order":           a.get("sortOrder"),
+            "id":                    a.get("id"),
+            "bu_id":                 a.get("buId"),
+            "group_id":              a.get("groupId"),
+            "label":                 a.get("label"),
+            "name":                  a.get("name"),
+            "status_raw":            a.get("status"),
+            "status_label":          STATUS_LABELS.get(a.get("status", ""), a.get("status")),
+            "category":              a.get("category"),
+            "radio_name":            a.get("radioName"),
+            "issi":                  a.get("issi"),
+            "comment":               a.get("comment"),
+            "sort_order":            a.get("sortOrder"),
             "operation_reservation": a.get("operationReservation"),
-            "hu_valid_until":       a.get("huValidUntil"),
-            "deleted":              a.get("deleted"),
-            "created":              a.get("created"),
-            "last_modified":        a.get("lastModified"),
-            "last_modified_by":     a.get("lastModifiedBy"),
+            "hu_valid_until":        a.get("huValidUntil"),
+            "deleted":               a.get("deleted"),
+            "created":               a.get("created"),
+            "last_modified":         a.get("lastModified"),
+            "last_modified_by":      a.get("lastModifiedBy"),
         }
 
     @property
@@ -153,21 +152,21 @@ class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
 
 
 class SteinAssetReadinessSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """Binary-style sensor: is the asset operationally ready?"""
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: SteinCoordinator, asset_id: int) -> None:
         super().__init__(coordinator)
         self._asset_id = asset_id
+        asset = coordinator.assets.get(asset_id, {})
+        label = asset.get("label") or f"asset_{asset_id}"
+        slug = _label_slug(label)
+        self._attr_unique_id = f"stein_asset_{asset_id}_readiness"
+        self.entity_id = f"sensor.stein_{slug}_einsatzbereitschaft"
 
     @property
     def _asset(self) -> dict:
         return self.coordinator.assets.get(self._asset_id, {})
-
-    @property
-    def unique_id(self) -> str:
-        return f"stein_asset_{self._asset_id}_readiness"
 
     @property
     def name(self) -> str:
@@ -176,14 +175,14 @@ class SteinAssetReadinessSensor(CoordinatorEntity[SteinCoordinator], SensorEntit
     @property
     def state(self) -> str:
         s = self._asset.get("status", "")
-        if s == "ready":    return "Voll"
+        if s == "ready":     return "Voll"
         if s == "semiready": return "Bedingt"
         return "Nicht bereit"
 
     @property
     def icon(self) -> str:
         s = self._asset.get("status", "")
-        if s == "ready":    return "mdi:shield-check"
+        if s == "ready":     return "mdi:shield-check"
         if s == "semiready": return "mdi:shield-half-full"
         return "mdi:shield-off"
 
@@ -197,7 +196,6 @@ class SteinAssetReadinessSensor(CoordinatorEntity[SteinCoordinator], SensorEntit
 
 
 class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """Total asset count for a BU."""
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:garage"
@@ -205,14 +203,12 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     def __init__(self, coordinator: SteinCoordinator, bu_id: int) -> None:
         super().__init__(coordinator)
         self._bu_id = bu_id
+        self._attr_unique_id = f"stein_bu_{bu_id}_total"
+        self.entity_id = f"sensor.stein_bu_{bu_id}_fahrzeuge_gesamt"
 
     @property
     def _bu(self) -> dict:
         return self.coordinator.bus.get(self._bu_id, {})
-
-    @property
-    def unique_id(self) -> str:
-        return f"stein_bu_{self._bu_id}_total"
 
     @property
     def name(self) -> str:
@@ -234,16 +230,16 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
             if a.get("buId") == self._bu_id:
                 s = a.get("status", "unknown")
                 counts[STATUS_LABELS.get(s, s)] = counts.get(STATUS_LABELS.get(s, s), 0) + 1
+        total = self.state
         ready = sum(1 for a in self.coordinator.assets.values()
                     if a.get("buId") == self._bu_id and a.get("status") == "ready")
-        total = self.state
         return {
-            "bu_id":   bu.get("id"),
-            "bu_name": bu.get("name"),
-            "bu_code": bu.get("code"),
+            "bu_id":    bu.get("id"),
+            "bu_name":  bu.get("name"),
+            "bu_code":  bu.get("code"),
             "region_id": bu.get("regionId"),
-            "comment": bu.get("comment"),
-            "author":  bu.get("author"),
+            "comment":  bu.get("comment"),
+            "author":   bu.get("author"),
             "last_modified": bu.get("lastModified"),
             "email_status_change_enabled": bu.get("emailStatusChangeEnabled"),
             "fs_sort_order": bu.get("fsSortOrder"),
@@ -258,7 +254,6 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
 
 
 class SteinBuStatusCountSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """Count of assets in a specific status for a BU – great for dashboards."""
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -267,14 +262,12 @@ class SteinBuStatusCountSensor(CoordinatorEntity[SteinCoordinator], SensorEntity
         super().__init__(coordinator)
         self._bu_id = bu_id
         self._status_key = status_key
+        self._attr_unique_id = f"stein_bu_{bu_id}_count_{status_key}"
+        self.entity_id = f"sensor.stein_bu_{bu_id}_anzahl_{status_key}"
 
     @property
     def _bu(self) -> dict:
         return self.coordinator.bus.get(self._bu_id, {})
-
-    @property
-    def unique_id(self) -> str:
-        return f"stein_bu_{self._bu_id}_count_{self._status_key}"
 
     @property
     def name(self) -> str:
@@ -307,14 +300,14 @@ class SteinBuStatusCountSensor(CoordinatorEntity[SteinCoordinator], SensorEntity
 
 
 class SteinUserinfoSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """API connection info sensor."""
     _attr_has_entity_name = True
     _attr_icon = "mdi:account-circle"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_unique_id = "stein_userinfo"
 
-    @property
-    def unique_id(self) -> str:
-        return "stein_userinfo"
+    def __init__(self, coordinator: SteinCoordinator) -> None:
+        super().__init__(coordinator)
+        self.entity_id = "sensor.stein_verbindung"
 
     @property
     def name(self) -> str:
