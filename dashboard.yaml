@@ -11,31 +11,31 @@ views:
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'ready') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.bu_id', 'equalto', 19) | selectattr('attributes.status_raw', 'equalto', 'ready') | list | count }}"
             secondary: Bereit
             icon: mdi:check-circle
             icon_color: green
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'semiready') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.bu_id', 'equalto', 19) | selectattr('attributes.status_raw', 'equalto', 'semiready') | list | count }}"
             secondary: Bedingt
             icon: mdi:alert-circle
             icon_color: orange
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'notready') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.bu_id', 'equalto', 19) | selectattr('attributes.status_raw', 'equalto', 'notready') | list | count }}"
             secondary: Nicht bereit
             icon: mdi:close-circle
             icon_color: red
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'inuse') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.bu_id', 'equalto', 19) | selectattr('attributes.status_raw', 'equalto', 'inuse') | list | count }}"
             secondary: Im Einsatz
             icon: mdi:fire-truck
             icon_color: blue
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'maint') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.bu_id', 'equalto', 19) | selectattr('attributes.status_raw', 'equalto', 'maint') | list | count }}"
             secondary: Wartung
             icon: mdi:wrench
             icon_color: purple
@@ -57,14 +57,25 @@ views:
             - attributes:
                 bu_id: 19
                 status_raw: maint
+          exclude:
+            - attributes:
+                group_id: 3
         sort:
           method: attribute
           attribute: status_raw
 
-      - type: custom:mushroom-entity-card
-        entity: sensor.stein_verbindung
-        name: API Verbindung
-        icon: mdi:account-circle
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Alle Ressourcen
+          show_header_toggle: false
+        filter:
+          include:
+            - attributes:
+                bu_id: 19
+        sort:
+          method: attribute
+          attribute: group_id
 
   - title: Gruppen
     path: gruppen
@@ -76,7 +87,7 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Fahrzeuge (Gruppe 1)"
+          title: Fahrzeuge
           show_header_toggle: false
         filter:
           include:
@@ -90,7 +101,7 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Personal (Gruppe 3)"
+          title: Personal
           show_header_toggle: false
         filter:
           include:
@@ -104,7 +115,7 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Einheiten (Gruppe 4)"
+          title: Einheiten
           show_header_toggle: false
         filter:
           include:
@@ -118,7 +129,7 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Anhaenger (Gruppe 5)"
+          title: Anhaenger
           show_header_toggle: false
         filter:
           include:
@@ -188,25 +199,6 @@ views:
         sort:
           method: friendly_name
 
-  - title: Alle Assets
-    path: alle
-    icon: mdi:format-list-bulleted
-    cards:
-      - type: custom:mushroom-title-card
-        title: Alle Ressourcen
-
-      - type: custom:auto-entities
-        card:
-          type: entities
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-        sort:
-          method: attribute
-          attribute: group_id
-
   - title: Bearbeiten
     path: bearbeiten
     icon: mdi:pencil
@@ -221,9 +213,9 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: select.*_status_setzen
-              attributes:
+            - attributes:
                 bu_id: 19
+              domain: select
         sort:
           method: friendly_name
 
@@ -234,9 +226,9 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: switch.*_einsatzreservierung
-              attributes:
+            - attributes:
                 bu_id: 19
+              domain: switch
         sort:
           method: friendly_name
 
@@ -254,7 +246,10 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_bu_*
+            - attributes:
+                bu_id: 19
+              domain: sensor
+              entity_id: "*bu*"
         sort:
           method: friendly_name
 
