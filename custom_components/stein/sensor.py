@@ -17,9 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 def _asset_device(asset: dict, coordinator: SteinCoordinator) -> DeviceInfo:
     bu_id = asset.get("buId", "?")
     bu = coordinator.bus.get(bu_id, {})
+    label = asset.get("label") or f"Asset {asset['id']}"
     return DeviceInfo(
         identifiers={(DOMAIN, f"asset_{asset['id']}")},
-        name=asset.get("label") or f"Asset {asset['id']}",
+        name=f"STEIN {label}",
         manufacturer="STEIN",
         model=asset.get("category") or "Asset",
         via_device=(DOMAIN, f"bu_{bu_id}"),
@@ -29,8 +30,8 @@ def _asset_device(asset: dict, coordinator: SteinCoordinator) -> DeviceInfo:
 
 def _bu_device(bu: dict) -> DeviceInfo:
     return DeviceInfo(
-        identifiers={(DOMAIN, f"bu_{bu['id']}")},
-        name=bu.get("name", f"BU {bu['id']}"),
+        identifiers={(DOMAIN, f"bu_{bu['id']}") },
+        name=f"STEIN BU {bu.get('name', bu['id'])}",
         manufacturer="STEIN",
         model="Ortsverband",
     )
@@ -85,6 +86,12 @@ class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     def __init__(self, coordinator: SteinCoordinator, asset_id: int) -> None:
         super().__init__(coordinator)
         self._asset_id = asset_id
+        asset = coordinator.assets.get(asset_id, {})
+        label = asset.get("label", f"asset_{asset_id}")
+        import re
+        slug = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+        self._attr_unique_id = f"stein_asset_{asset_id}_status"
+        self.entity_id = f"sensor.stein_{slug}_status"
 
     @property
     def _asset(self) -> dict:

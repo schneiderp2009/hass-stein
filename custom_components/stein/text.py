@@ -1,3 +1,4 @@
+import re
 """Text platform for STEIN."""
 from __future__ import annotations
 import logging
@@ -58,6 +59,10 @@ class SteinAssetTextField(CoordinatorEntity[SteinCoordinator], TextEntity):
         self._attr_icon = icon
         self._attr_entity_category = entity_category
         self._field_suffix = field_suffix
+        _asset = coordinator.assets.get(asset_id, {})
+        _label = _asset.get("label", f"asset_{asset_id}")
+        _slug = re.sub(r"[^a-z0-9]+", "_", _label.lower()).strip("_")
+        self.entity_id = f"text.stein_{_slug}_{field_suffix}"
 
     @property
     def _asset(self): return self.coordinator.assets.get(self._asset_id, {})

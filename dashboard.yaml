@@ -1,6 +1,7 @@
 title: STEIN
 views:
-  - title: Übersicht
+
+  - title: Uebersicht
     path: uebersicht
     icon: mdi:home-group
     cards:
@@ -10,31 +11,31 @@ views:
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Einsatzbereit') | list | count }}"
-            secondary: Einsatzbereit
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'ready') | list | count }}"
+            secondary: Bereit
             icon: mdi:check-circle
             icon_color: green
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Bedingt einsatzbereit') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'semiready') | list | count }}"
             secondary: Bedingt
             icon: mdi:alert-circle
             icon_color: orange
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Nicht einsatzbereit') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'notready') | list | count }}"
             secondary: Nicht bereit
             icon: mdi:close-circle
             icon_color: red
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Im Einsatz') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'inuse') | list | count }}"
             secondary: Im Einsatz
             icon: mdi:fire-truck
             icon_color: blue
             layout: vertical
           - type: custom:mushroom-template-card
-            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'In Wartung') | list | count }}"
+            primary: "{{ states.sensor | selectattr('attributes.bu_id', 'defined') | selectattr('attributes.status_raw', 'equalto', 'maint') | list | count }}"
             secondary: Wartung
             icon: mdi:wrench
             icon_color: purple
@@ -43,18 +44,22 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Handlungsbedarf"
+          title: Handlungsbedarf
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              state: "Nicht einsatzbereit"
-            - entity_id: sensor.stein_*_status
-              state: "Bedingt einsatzbereit"
-            - entity_id: sensor.stein_*_status
-              state: "In Wartung"
+            - attributes:
+                bu_id: 19
+                status_raw: notready
+            - attributes:
+                bu_id: 19
+                status_raw: semiready
+            - attributes:
+                bu_id: 19
+                status_raw: maint
         sort:
-          method: state
+          method: attribute
+          attribute: status_raw
 
       - type: custom:mushroom-entity-card
         entity: sensor.stein_verbindung
@@ -75,8 +80,8 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              attributes:
+            - attributes:
+                bu_id: 19
                 group_id: 1
         sort:
           method: attribute
@@ -89,8 +94,8 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              attributes:
+            - attributes:
+                bu_id: 19
                 group_id: 3
         sort:
           method: attribute
@@ -103,8 +108,8 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              attributes:
+            - attributes:
+                bu_id: 19
                 group_id: 4
         sort:
           method: attribute
@@ -117,8 +122,8 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              attributes:
+            - attributes:
+                bu_id: 19
                 group_id: 5
         sort:
           method: attribute
@@ -134,48 +139,52 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Im Einsatz"
+          title: Im Einsatz
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              state: "Im Einsatz"
+            - attributes:
+                bu_id: 19
+                status_raw: inuse
         sort:
           method: friendly_name
 
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Bedingt einsatzbereit"
+          title: Bedingt einsatzbereit
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              state: "Bedingt einsatzbereit"
+            - attributes:
+                bu_id: 19
+                status_raw: semiready
         sort:
           method: friendly_name
 
       - type: custom:auto-entities
         card:
           type: entities
-          title: "Nicht einsatzbereit"
+          title: Nicht einsatzbereit
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              state: "Nicht einsatzbereit"
+            - attributes:
+                bu_id: 19
+                status_raw: notready
         sort:
           method: friendly_name
 
       - type: custom:auto-entities
         card:
           type: entities
-          title: "In Wartung"
+          title: In Wartung
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
-              state: "In Wartung"
+            - attributes:
+                bu_id: 19
+                status_raw: maint
         sort:
           method: friendly_name
 
@@ -192,7 +201,8 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: sensor.stein_*_status
+            - attributes:
+                bu_id: 19
         sort:
           method: attribute
           attribute: group_id
@@ -202,17 +212,18 @@ views:
     icon: mdi:pencil
     cards:
       - type: custom:mushroom-title-card
-        title: Assets bearbeiten
-        subtitle: Status und Felder direkt aendern
+        title: Status aendern
 
       - type: custom:auto-entities
         card:
           type: entities
-          title: Status aendern
+          title: Status
           show_header_toggle: false
         filter:
           include:
-            - entity_id: select.stein_*
+            - entity_id: select.*_status_setzen
+              attributes:
+                bu_id: 19
         sort:
           method: friendly_name
 
@@ -223,7 +234,9 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: switch.stein_*
+            - entity_id: switch.*_einsatzreservierung
+              attributes:
+                bu_id: 19
         sort:
           method: friendly_name
 

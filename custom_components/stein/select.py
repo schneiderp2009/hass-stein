@@ -1,3 +1,4 @@
+import re
 """Select platform for STEIN."""
 from __future__ import annotations
 import logging
@@ -37,6 +38,10 @@ class SteinAssetStatusSelect(CoordinatorEntity[SteinCoordinator], SelectEntity):
     def __init__(self, coordinator, asset_id):
         super().__init__(coordinator)
         self._asset_id = asset_id
+        _asset = coordinator.assets.get(asset_id, {})
+        _label = _asset.get("label", f"asset_{asset_id}")
+        _slug = re.sub(r"[^a-z0-9]+", "_", _label.lower()).strip("_")
+        self.entity_id = f"select.stein_{_slug}_status_setzen"
 
     @property
     def _asset(self): return self.coordinator.assets.get(self._asset_id, {})
