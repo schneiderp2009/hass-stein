@@ -1,224 +1,144 @@
-# ============================================================
-# STEIN Dashboard – angepasst an THW OV Gmünd
-# Benötigt: mushroom, auto-entities, layout-card (alle via HACS)
-#
-# WICHTIG vor Nutzung:
-#   1. STEIN-Integration löschen + neu einrichten (bereinigt doppelte IDs)
-#   2. BU-ID 19 ggf. anpassen (steht in den Entitätsnamen)
-#   3. Dashboard: Einstellungen → Dashboards → + Hinzufügen → YAML-Modus
-# ============================================================
-
 title: STEIN
 views:
-
-# ============================================================
-# VIEW 1: ÜBERSICHT
-# ============================================================
   - title: Übersicht
     path: uebersicht
     icon: mdi:home-group
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
         title: STEIN Einsatzbereitschaft
-        subtitle: >
-          {% set entities = states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status') | list %}
-          {% set total = entities | count %}
-          {% set ready = entities | selectattr('state', 'eq', 'Einsatzbereit') | list | count %}
-          {{ ready }}/{{ total }} einsatzbereit ·
-          Aktualisiert {{ relative_time(states.sensor.stein_verbindung.last_updated) }}
 
-      # --- Status-Kacheln ---
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
-            primary: >
-              {{ states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status')
-                 | selectattr('state', 'eq', 'Einsatzbereit') | list | count }}
+            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Einsatzbereit') | list | count }}"
             secondary: Einsatzbereit
             icon: mdi:check-circle
             icon_color: green
             layout: vertical
-
           - type: custom:mushroom-template-card
-            primary: >
-              {{ states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status')
-                 | selectattr('state', 'eq', 'Bedingt einsatzbereit') | list | count }}
+            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Bedingt einsatzbereit') | list | count }}"
             secondary: Bedingt
             icon: mdi:alert-circle
             icon_color: orange
             layout: vertical
-
           - type: custom:mushroom-template-card
-            primary: >
-              {{ states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status')
-                 | selectattr('state', 'eq', 'Nicht einsatzbereit') | list | count }}
+            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Nicht einsatzbereit') | list | count }}"
             secondary: Nicht bereit
             icon: mdi:close-circle
             icon_color: red
             layout: vertical
-
           - type: custom:mushroom-template-card
-            primary: >
-              {{ states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status')
-                 | selectattr('state', 'eq', 'Im Einsatz') | list | count }}
+            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'Im Einsatz') | list | count }}"
             secondary: Im Einsatz
             icon: mdi:fire-truck
             icon_color: blue
             layout: vertical
-
           - type: custom:mushroom-template-card
-            primary: >
-              {{ states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status')
-                 | selectattr('state', 'eq', 'In Wartung') | list | count }}
+            primary: "{{ states.sensor | selectattr('entity_id', 'search', 'stein.*status') | selectattr('state', 'equalto', 'In Wartung') | list | count }}"
             secondary: Wartung
             icon: mdi:wrench
             icon_color: purple
             layout: vertical
 
-      # --- Einsatzbereitschafts-Balken ---
-      - type: custom:mushroom-template-card
-        primary: >
-          {% set entities = states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status') | list %}
-          {% set total = entities | count %}
-          {% set ready = entities | selectattr('state', 'eq', 'Einsatzbereit') | list | count %}
-          {% if total > 0 %}{{ ((ready / total) * 100) | round(0) }}% Einsatzbereit{% else %}Keine Daten{% endif %}
-        secondary: >
-          {% set entities = states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status') | list %}
-          {{ entities | count }} Ressourcen gesamt
-        icon: mdi:chart-bar
-        icon_color: >
-          {% set entities = states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status') | list %}
-          {% set total = entities | count %}
-          {% set ready = entities | selectattr('state', 'eq', 'Einsatzbereit') | list | count %}
-          {% if total > 0 and (ready / total) >= 0.75 %}green
-          {% elif total > 0 and (ready / total) >= 0.5 %}orange
-          {% else %}red{% endif %}
-
-      # --- Kritische Assets (nicht bereit / Wartung / bedingt) ---
       - type: custom:auto-entities
         card:
           type: entities
-          title: "⚠ Handlungsbedarf"
+          title: "Handlungsbedarf"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "Nicht einsatzbereit"
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "Bedingt einsatzbereit"
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "In Wartung"
         sort:
           method: state
 
-      # --- API Status ---
-      - type: custom:mushroom-template-card
-        primary: "{{ states('sensor.stein_verbindung') }}"
-        secondary: "API Verbindung · {{ state_attr('sensor.stein_verbindung', 'email') }}"
+      - type: custom:mushroom-entity-card
+        entity: sensor.stein_verbindung
+        name: API Verbindung
         icon: mdi:account-circle
-        icon_color: >
-          {% if states('sensor.stein_verbindung') != 'Unbekannt' %}green{% else %}red{% endif %}
 
-# ============================================================
-# VIEW 2: GRUPPEN
-# ============================================================
   - title: Gruppen
     path: gruppen
     icon: mdi:folder-multiple
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
         title: Ressourcen nach Gruppe
 
-      # Gruppe 1 – Fahrzeuge
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🚒 Fahrzeuge (Gruppe 1)"
+          title: "Fahrzeuge (Gruppe 1)"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               attributes:
                 group_id: 1
         sort:
           method: attribute
           attribute: sort_order
 
-      # Gruppe 3 – Personal
       - type: custom:auto-entities
         card:
           type: entities
-          title: "👤 Personal (Gruppe 3)"
+          title: "Personal (Gruppe 3)"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               attributes:
                 group_id: 3
         sort:
           method: attribute
           attribute: sort_order
 
-      # Gruppe 4 – Einheiten
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🏗 Einheiten (Gruppe 4)"
+          title: "Einheiten (Gruppe 4)"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               attributes:
                 group_id: 4
         sort:
           method: attribute
           attribute: sort_order
 
-      # Gruppe 5 – Anhänger
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🚛 Anhänger (Gruppe 5)"
+          title: "Anhaenger (Gruppe 5)"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               attributes:
                 group_id: 5
         sort:
           method: attribute
           attribute: sort_order
 
-# ============================================================
-# VIEW 3: LAGE (nur kritische Assets)
-# ============================================================
   - title: Lage
     path: lage
     icon: mdi:alert-circle
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
         title: Aktuelle Lage
-        subtitle: >
-          {% set entities = states.sensor | selectattr('entity_id', 'match', 'sensor.stein_.*_status') | list %}
-          {% set ok = entities | selectattr('state', 'eq', 'Einsatzbereit') | list | count %}
-          {% set total = entities | count %}
-          {% if ok == total %}Alle Ressourcen einsatzbereit
-          {% else %}{{ total - ok }} Ressource(n) mit Einschränkungen{% endif %}
 
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🔵 Im Einsatz"
+          title: "Im Einsatz"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "Im Einsatz"
         sort:
           method: friendly_name
@@ -226,11 +146,11 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🟠 Bedingt einsatzbereit"
+          title: "Bedingt einsatzbereit"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "Bedingt einsatzbereit"
         sort:
           method: friendly_name
@@ -238,11 +158,11 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🔴 Nicht einsatzbereit"
+          title: "Nicht einsatzbereit"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "Nicht einsatzbereit"
         sort:
           method: friendly_name
@@ -250,24 +170,19 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: "🔧 In Wartung"
+          title: "In Wartung"
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
               state: "In Wartung"
         sort:
           method: friendly_name
 
-# ============================================================
-# VIEW 4: ALLE ASSETS (Vollständige Liste)
-# ============================================================
   - title: Alle Assets
     path: alle
     icon: mdi:format-list-bulleted
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
         title: Alle Ressourcen
 
@@ -277,80 +192,64 @@ views:
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "sensor.stein_*_status"
+            - entity_id: sensor.stein_*_status
         sort:
           method: attribute
           attribute: group_id
-        show_empty: false
 
-# ============================================================
-# VIEW 5: ASSET BEARBEITEN
-# Dynamisch – zeigt alle Assets mit ihren Steuerungsfeldern
-# ============================================================
   - title: Bearbeiten
     path: bearbeiten
     icon: mdi:pencil
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
         title: Assets bearbeiten
-        subtitle: Status und Felder direkt ändern
+        subtitle: Status und Felder direkt aendern
 
-      # GKW
-      - type: entities
-        title: "GKW (ID 340)"
-        entities:
-          - entity: select.stein_gkw_status_setzen
-            name: Status
-          - entity: switch.stein_gkw_einsatzreservierung
-            name: Einsatzreservierung
-          - entity: text.stein_gkw_kommentar
-            name: Kommentar
-
-      # LKW - Werkstatt
-      - type: entities
-        title: "LKW – Werkstatt (ID 349)"
-        entities:
-          - entity: select.stein_lkw_werkstatt_status_setzen
-            name: Status
-          - entity: switch.stein_lkw_werkstatt_einsatzreservierung
-            name: Einsatzreservierung
-          - entity: text.stein_lkw_werkstatt_kommentar
-            name: Kommentar
-
-      # Alle Select-Entitäten automatisch
       - type: custom:auto-entities
         card:
           type: entities
-          title: Alle Status-Steuerungen
+          title: Status aendern
           show_header_toggle: false
         filter:
           include:
-            - entity_id: "select.stein_*"
+            - entity_id: select.stein_*
         sort:
           method: friendly_name
 
-# ============================================================
-# VIEW 6: ORTSVERBAND
-# ============================================================
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Einsatzreservierungen
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: switch.stein_*
+        sort:
+          method: friendly_name
+
   - title: Ortsverband
     path: ortsverband
     icon: mdi:information
-    badges: []
     cards:
-
       - type: custom:mushroom-title-card
-        title: Ortsverband Info
+        title: Ortsverband
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: BU Statistiken
+          show_header_toggle: false
+        filter:
+          include:
+            - entity_id: sensor.stein_bu_*
+        sort:
+          method: friendly_name
 
       - type: entities
-        title: Details
+        title: API Verbindung
         entities:
-          - type: attribute
-            entity: sensor.stein_verbindung
-            attribute: name
-            name: API Nutzer
-            icon: mdi:account-circle
+          - entity: sensor.stein_verbindung
+            name: Nutzer
           - type: attribute
             entity: sensor.stein_verbindung
             attribute: email
@@ -363,17 +262,6 @@ views:
             icon: mdi:shield-account
           - type: attribute
             entity: sensor.stein_verbindung
-            attribute: scope_role_permission
-            name: Berechtigung
-            icon: mdi:key
-
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: BU Statistiken
-          show_header_toggle: false
-        filter:
-          include:
-            - entity_id: "sensor.stein_bu_*"
-        sort:
-          method: friendly_name
+            attribute: active
+            name: Aktiv
+            icon: mdi:check-circle
