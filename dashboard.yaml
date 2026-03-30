@@ -41,41 +41,68 @@ views:
             icon_color: purple
             layout: vertical
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Handlungsbedarf
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                status_raw: notready
-            - attributes:
-                bu_id: 19
-                status_raw: semiready
-            - attributes:
-                bu_id: 19
-                status_raw: maint
-          exclude:
-            - attributes:
-                group_id: 3
-        sort:
-          method: attribute
-          attribute: status_raw
+      - type: entities
+        title: Handlungsbedarf
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gkw_status
+            name: GKW
+          - entity: sensor.lkw_werkstatt_status
+            name: LKW Werkstatt
+          - entity: sensor.anh_status
+            name: Anh.
+        card_mod:
+          style: |
+            .entity:has([title="Einsatzbereit"]) {
+              display: none;
+            }
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Alle Ressourcen
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-        sort:
-          method: attribute
-          attribute: group_id
+      - type: entities
+        title: Alle Ressourcen
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gkw_status
+            name: GKW
+          - entity: sensor.lkw_werkstatt_status
+            name: LKW Werkstatt
+          - entity: sensor.stapler_35_to_status
+            name: Stapler 3,5 to
+          - entity: sensor.mtw_tz_status
+            name: MTW TZ
+          - entity: sensor.lkw_kipper_lkr_status
+            name: LKW Kipper Lkr
+          - entity: sensor.nea_200kva_status
+            name: NEA 200kVA
+          - entity: sensor.lkw_lbw_status
+            name: LKW Lbw
+          - entity: sensor.mtw_ov_status
+            name: MTW OV
+          - entity: sensor.mzkw_status
+            name: MzKW
+          - entity: sensor.anh_status
+            name: Anh.
+          - entity: sensor.anh_tieflader_13t_status
+            name: Anh. Tieflader 13t
+          - entity: sensor.anhanger_status
+            name: Anhaenger
+          - entity: sensor.nea_50_kva_lima_status
+            name: NEA 50 kVA LiMa
+          - entity: sensor.anh_pf_12t_status
+            name: Anh. PF 12t
+          - entity: sensor.technischer_berater_arbeitssicherheit_status
+            name: Techn. Berater Arbeitssicherheit
+          - entity: sensor.fachberater_status
+            name: Fachberater
+          - entity: sensor.fachgruppe_elektroversorgung_status
+            name: FG Elektroversorgung
+          - entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            name: FG Notversorgung
+          - entity: sensor.bergungsgruppe_status
+            name: Bergungsgruppe
+          - entity: sensor.zugtrupp_status
+            name: Zugtrupp
+          - entity: sensor.luk_status
+            name: LuK
 
   - title: Gruppen
     path: gruppen
@@ -84,61 +111,67 @@ views:
       - type: custom:mushroom-title-card
         title: Ressourcen nach Gruppe
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Fahrzeuge
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                group_id: 1
-        sort:
-          method: attribute
-          attribute: sort_order
+      - type: entities
+        title: Fahrzeuge
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gkw_status
+            name: GKW
+          - entity: sensor.lkw_werkstatt_status
+            name: LKW Werkstatt
+          - entity: sensor.stapler_35_to_status
+            name: Stapler 3,5 to
+          - entity: sensor.mtw_tz_status
+            name: MTW TZ
+          - entity: sensor.lkw_kipper_lkr_status
+            name: LKW Kipper Lkr
+          - entity: sensor.nea_200kva_status
+            name: NEA 200kVA
+          - entity: sensor.lkw_lbw_status
+            name: LKW Lbw
+          - entity: sensor.mtw_ov_status
+            name: MTW OV
+          - entity: sensor.mzkw_status
+            name: MzKW
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Personal
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                group_id: 3
-        sort:
-          method: attribute
-          attribute: sort_order
+      - type: entities
+        title: Anhaenger
+        show_header_toggle: false
+        entities:
+          - entity: sensor.anh_status
+            name: Anh.
+          - entity: sensor.anh_tieflader_13t_status
+            name: Anh. Tieflader 13t
+          - entity: sensor.anhanger_status
+            name: Anhaenger
+          - entity: sensor.nea_50_kva_lima_status
+            name: NEA 50 kVA LiMa
+          - entity: sensor.anh_pf_12t_status
+            name: Anh. PF 12t
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Einheiten
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                group_id: 4
-        sort:
-          method: attribute
-          attribute: sort_order
+      - type: entities
+        title: Personal
+        show_header_toggle: false
+        entities:
+          - entity: sensor.technischer_berater_arbeitssicherheit_status
+            name: Techn. Berater Arbeitssicherheit
+          - entity: sensor.fachberater_status
+            name: Fachberater
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Anhaenger
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                group_id: 5
-        sort:
-          method: attribute
-          attribute: sort_order
+      - type: entities
+        title: Einheiten
+        show_header_toggle: false
+        entities:
+          - entity: sensor.fachgruppe_elektroversorgung_status
+            name: FG Elektroversorgung
+          - entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            name: FG Notversorgung
+          - entity: sensor.bergungsgruppe_status
+            name: Bergungsgruppe
+          - entity: sensor.zugtrupp_status
+            name: Zugtrupp
+          - entity: sensor.luk_status
+            name: LuK
 
   - title: Lage
     path: lage
@@ -147,57 +180,195 @@ views:
       - type: custom:mushroom-title-card
         title: Aktuelle Lage
 
-      - type: custom:auto-entities
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.gkw_status
+            state_not: Einsatzbereit
         card:
-          type: entities
-          title: Im Einsatz
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                status_raw: inuse
-        sort:
-          method: friendly_name
+          type: custom:mushroom-entity-card
+          entity: sensor.gkw_status
+          name: GKW
 
-      - type: custom:auto-entities
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.lkw_werkstatt_status
+            state_not: Einsatzbereit
         card:
-          type: entities
-          title: Bedingt einsatzbereit
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                status_raw: semiready
-        sort:
-          method: friendly_name
+          type: custom:mushroom-entity-card
+          entity: sensor.lkw_werkstatt_status
+          name: LKW Werkstatt
 
-      - type: custom:auto-entities
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.stapler_35_to_status
+            state_not: Einsatzbereit
         card:
-          type: entities
-          title: Nicht einsatzbereit
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                status_raw: notready
-        sort:
-          method: friendly_name
+          type: custom:mushroom-entity-card
+          entity: sensor.stapler_35_to_status
+          name: Stapler 3,5 to
 
-      - type: custom:auto-entities
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.mtw_tz_status
+            state_not: Einsatzbereit
         card:
-          type: entities
-          title: In Wartung
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                status_raw: maint
-        sort:
-          method: friendly_name
+          type: custom:mushroom-entity-card
+          entity: sensor.mtw_tz_status
+          name: MTW TZ
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.lkw_kipper_lkr_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.lkw_kipper_lkr_status
+          name: LKW Kipper Lkr
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.nea_200kva_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.nea_200kva_status
+          name: NEA 200kVA
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.lkw_lbw_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.lkw_lbw_status
+          name: LKW Lbw
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.mtw_ov_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.mtw_ov_status
+          name: MTW OV
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.mzkw_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.mzkw_status
+          name: MzKW
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.anh_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.anh_status
+          name: Anh.
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.anh_tieflader_13t_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.anh_tieflader_13t_status
+          name: Anh. Tieflader 13t
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.anhanger_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.anhanger_status
+          name: Anhaenger
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.nea_50_kva_lima_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.nea_50_kva_lima_status
+          name: NEA 50 kVA LiMa
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.anh_pf_12t_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.anh_pf_12t_status
+          name: Anh. PF 12t
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.bergungsgruppe_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.bergungsgruppe_status
+          name: Bergungsgruppe
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.zugtrupp_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.zugtrupp_status
+          name: Zugtrupp
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.luk_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.luk_status
+          name: LuK
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.fachgruppe_elektroversorgung_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.fachgruppe_elektroversorgung_status
+          name: FG Elektroversorgung
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            state_not: Einsatzbereit
+        card:
+          type: custom:mushroom-entity-card
+          entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+          name: FG Notversorgung
 
   - title: Bearbeiten
     path: bearbeiten
@@ -206,31 +377,52 @@ views:
       - type: custom:mushroom-title-card
         title: Status aendern
 
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Status
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-              domain: select
-        sort:
-          method: friendly_name
-
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Einsatzreservierungen
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-              domain: switch
-        sort:
-          method: friendly_name
+      - type: entities
+        title: Status
+        show_header_toggle: false
+        entities:
+          - entity: select.gkw_status_setzen
+            name: GKW
+          - entity: select.lkw_werkstatt_status_setzen
+            name: LKW Werkstatt
+          - entity: select.stapler_35_to_status_setzen
+            name: Stapler 3,5 to
+          - entity: select.mtw_tz_status_setzen
+            name: MTW TZ
+          - entity: select.lkw_kipper_lkr_status_setzen
+            name: LKW Kipper Lkr
+          - entity: select.nea_200kva_status_setzen
+            name: NEA 200kVA
+          - entity: select.lkw_lbw_status_setzen
+            name: LKW Lbw
+          - entity: select.mtw_ov_status_setzen
+            name: MTW OV
+          - entity: select.mzkw_status_setzen
+            name: MzKW
+          - entity: select.anh_status_setzen
+            name: Anh.
+          - entity: select.anh_tieflader_13t_status_setzen
+            name: Anh. Tieflader 13t
+          - entity: select.anhanger_status_setzen
+            name: Anhaenger
+          - entity: select.nea_50_kva_lima_status_setzen
+            name: NEA 50 kVA LiMa
+          - entity: select.anh_pf_12t_status_setzen
+            name: Anh. PF 12t
+          - entity: select.technischer_berater_arbeitssicherheit_status_setzen
+            name: Techn. Berater
+          - entity: select.fachberater_status_setzen
+            name: Fachberater
+          - entity: select.bergungsgruppe_status_setzen
+            name: Bergungsgruppe
+          - entity: select.zugtrupp_status_setzen
+            name: Zugtrupp
+          - entity: select.luk_status_setzen
+            name: LuK
+          - entity: select.fachgruppe_elektroversorgung_status_setzen
+            name: FG Elektroversorgung
+          - entity: select.fachgruppe_notversorgung_und_notinstandsetzung_status_setzen
+            name: FG Notversorgung
 
   - title: Ortsverband
     path: ortsverband
@@ -238,21 +430,6 @@ views:
     cards:
       - type: custom:mushroom-title-card
         title: Ortsverband
-
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: BU Statistiken
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-              domain: sensor
-              entity_id: "*bu*"
-        sort:
-          method: friendly_name
-
       - type: entities
         title: API Verbindung
         entities:
