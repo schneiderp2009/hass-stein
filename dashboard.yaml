@@ -5,8 +5,14 @@ views:
     path: uebersicht
     icon: mdi:home-group
     cards:
+
       - type: custom:mushroom-title-card
         title: STEIN Einsatzbereitschaft
+        subtitle: >
+          {{ states.sensor
+             | selectattr('attributes.bu_id', 'defined')
+             | selectattr('attributes.bu_id', 'equalto', 19)
+             | list | count }} Ressourcen
 
       - type: horizontal-stack
         cards:
@@ -42,136 +48,373 @@ views:
             layout: vertical
 
       - type: entities
-        title: Handlungsbedarf
+        title: "Handlungsbedarf"
         show_header_toggle: false
         entities:
-          - entity: sensor.gkw_status
-            name: GKW
-          - entity: sensor.lkw_werkstatt_status
-            name: LKW Werkstatt
-          - entity: sensor.anh_status
-            name: Anh.
-        card_mod:
-          style: |
-            .entity:has([title="Einsatzbereit"]) {
-              display: none;
-            }
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.technischer_berater_arbeitssicherheit_status
+              name: "Technischer Berater Arbeitssicherheit"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29503
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.stapler_35_to_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.stapler_35_to_status
+              name: "Stapler 3,5 to"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-348
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachberater_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.fachberater_status
+              name: "Fachberater"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29323
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_elektroversorgung_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_elektroversorgung_status
+              name: "Fachgruppe Elektroversorgung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16539
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+              name: "Fachgruppe Notversorgung und Notinstandsetzung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16540
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.bergungsgruppe_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.bergungsgruppe_status
+              name: "Bergungsgruppe"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16541
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.zugtrupp_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.zugtrupp_status
+              name: "Zugtrupp"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16542
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.luk_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.luk_status
+              name: "LuK"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28642
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.anh_status
+              name: "Anh."
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-351
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_werkstatt_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.lkw_werkstatt_status
+              name: "LKW - Werkstatt"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-349
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_tieflader_13t_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.anh_tieflader_13t_status
+              name: "Anh. Tieflader 13t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-20502
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.gkw_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.gkw_status
+              name: "GKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-340
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anhaenger_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.anhaenger_status
+              name: "Anhaenger"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-350
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_tz_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.mtw_tz_status
+              name: "MTW TZ"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3551
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_kipper_lkr_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.lkw_kipper_lkr_status
+              name: "LKW Kipper Lkr"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-346
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_200kva_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.nea_200kva_status
+              name: "NEA 200kVA"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3550
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_lbw_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.lkw_lbw_status
+              name: "LKW Lbw"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3547
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_ov_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.mtw_ov_status
+              name: "MTW OV"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-5164
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_50_kva_lima_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.nea_50_kva_lima_status
+              name: "NEA 50 kVA LiMa"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28751
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mzkw_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.mzkw_status
+              name: "MzKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-341
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_pf_12t_status
+                state_not: "Einsatzbereit"
+            row:
+              entity: sensor.anh_pf_12t_status
+              name: "Anh. PF 12t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-26401
 
       - type: entities
-        title: Alle Ressourcen
+        title: "Fahrzeuge"
         show_header_toggle: false
         entities:
           - entity: sensor.gkw_status
-            name: GKW
+            name: "GKW"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-340
           - entity: sensor.lkw_werkstatt_status
-            name: LKW Werkstatt
-          - entity: sensor.stapler_35_to_status
-            name: Stapler 3,5 to
-          - entity: sensor.mtw_tz_status
-            name: MTW TZ
+            name: "LKW - Werkstatt"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-349
           - entity: sensor.lkw_kipper_lkr_status
-            name: LKW Kipper Lkr
-          - entity: sensor.nea_200kva_status
-            name: NEA 200kVA
+            name: "LKW Kipper Lkr"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-346
           - entity: sensor.lkw_lbw_status
-            name: LKW Lbw
+            name: "LKW Lbw"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-3547
           - entity: sensor.mtw_ov_status
-            name: MTW OV
-          - entity: sensor.mzkw_status
-            name: MzKW
-          - entity: sensor.anh_status
-            name: Anh.
-          - entity: sensor.anh_tieflader_13t_status
-            name: Anh. Tieflader 13t
-          - entity: sensor.anhanger_status
-            name: Anhaenger
-          - entity: sensor.nea_50_kva_lima_status
-            name: NEA 50 kVA LiMa
-          - entity: sensor.anh_pf_12t_status
-            name: Anh. PF 12t
-          - entity: sensor.technischer_berater_arbeitssicherheit_status
-            name: Techn. Berater Arbeitssicherheit
-          - entity: sensor.fachberater_status
-            name: Fachberater
-          - entity: sensor.fachgruppe_elektroversorgung_status
-            name: FG Elektroversorgung
-          - entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-            name: FG Notversorgung
-          - entity: sensor.bergungsgruppe_status
-            name: Bergungsgruppe
-          - entity: sensor.zugtrupp_status
-            name: Zugtrupp
-          - entity: sensor.luk_status
-            name: LuK
-
-  - title: Gruppen
-    path: gruppen
-    icon: mdi:folder-multiple
-    cards:
-      - type: custom:mushroom-title-card
-        title: Ressourcen nach Gruppe
-
-      - type: entities
-        title: Fahrzeuge
-        show_header_toggle: false
-        entities:
-          - entity: sensor.gkw_status
-            name: GKW
-          - entity: sensor.lkw_werkstatt_status
-            name: LKW Werkstatt
-          - entity: sensor.stapler_35_to_status
-            name: Stapler 3,5 to
+            name: "MTW OV"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-5164
           - entity: sensor.mtw_tz_status
-            name: MTW TZ
-          - entity: sensor.lkw_kipper_lkr_status
-            name: LKW Kipper Lkr
-          - entity: sensor.nea_200kva_status
-            name: NEA 200kVA
-          - entity: sensor.lkw_lbw_status
-            name: LKW Lbw
-          - entity: sensor.mtw_ov_status
-            name: MTW OV
+            name: "MTW TZ"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-3551
           - entity: sensor.mzkw_status
-            name: MzKW
+            name: "MzKW"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-341
+          - entity: sensor.nea_200kva_status
+            name: "NEA 200kVA"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-3550
+          - entity: sensor.stapler_35_to_status
+            name: "Stapler 3,5 to"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-348
 
       - type: entities
-        title: Anhaenger
+        title: "Personal"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.fachberater_status
+            name: "Fachberater"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-29323
+          - entity: sensor.technischer_berater_arbeitssicherheit_status
+            name: "Technischer Berater Arbeitssicherheit"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-29503
+
+      - type: entities
+        title: "Einheiten"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.bergungsgruppe_status
+            name: "Bergungsgruppe"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-16541
+          - entity: sensor.fachgruppe_elektroversorgung_status
+            name: "Fachgruppe Elektroversorgung"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-16539
+          - entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            name: "Fachgruppe Notversorgung und Notinstandsetzung"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-16540
+          - entity: sensor.luk_status
+            name: "LuK"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-28642
+          - entity: sensor.zugtrupp_status
+            name: "Zugtrupp"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-16542
+
+      - type: entities
+        title: "Anhaenger"
         show_header_toggle: false
         entities:
           - entity: sensor.anh_status
-            name: Anh.
-          - entity: sensor.anh_tieflader_13t_status
-            name: Anh. Tieflader 13t
-          - entity: sensor.anhanger_status
-            name: Anhaenger
-          - entity: sensor.nea_50_kva_lima_status
-            name: NEA 50 kVA LiMa
+            name: "Anh."
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-351
           - entity: sensor.anh_pf_12t_status
-            name: Anh. PF 12t
+            name: "Anh. PF 12t"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-26401
+          - entity: sensor.anh_tieflader_13t_status
+            name: "Anh. Tieflader 13t"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-20502
+          - entity: sensor.anhaenger_status
+            name: "Anhaenger"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-350
+          - entity: sensor.nea_50_kva_lima_status
+            name: "NEA 50 kVA LiMa"
+            tap_action:
+              action: navigate
+              navigation_path: /stein/asset-28751
 
-      - type: entities
-        title: Personal
-        show_header_toggle: false
-        entities:
-          - entity: sensor.technischer_berater_arbeitssicherheit_status
-            name: Techn. Berater Arbeitssicherheit
-          - entity: sensor.fachberater_status
-            name: Fachberater
-
-      - type: entities
-        title: Einheiten
-        show_header_toggle: false
-        entities:
-          - entity: sensor.fachgruppe_elektroversorgung_status
-            name: FG Elektroversorgung
-          - entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-            name: FG Notversorgung
-          - entity: sensor.bergungsgruppe_status
-            name: Bergungsgruppe
-          - entity: sensor.zugtrupp_status
-            name: Zugtrupp
-          - entity: sensor.luk_status
-            name: LuK
+      - type: custom:mushroom-entity-card
+        entity: sensor.stein_verbindung
+        name: "API Verbindung"
+        icon: mdi:account-circle
+        tap_action:
+          action: navigate
+          navigation_path: /stein/ortsverband
 
   - title: Lage
     path: lage
@@ -180,258 +423,3254 @@ views:
       - type: custom:mushroom-title-card
         title: Aktuelle Lage
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.gkw_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.gkw_status
-          name: GKW
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.lkw_werkstatt_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.lkw_werkstatt_status
-          name: LKW Werkstatt
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.stapler_35_to_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.stapler_35_to_status
-          name: Stapler 3,5 to
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.mtw_tz_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.mtw_tz_status
-          name: MTW TZ
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.lkw_kipper_lkr_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.lkw_kipper_lkr_status
-          name: LKW Kipper Lkr
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.nea_200kva_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.nea_200kva_status
-          name: NEA 200kVA
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.lkw_lbw_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.lkw_lbw_status
-          name: LKW Lbw
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.mtw_ov_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.mtw_ov_status
-          name: MTW OV
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.mzkw_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.mzkw_status
-          name: MzKW
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.anh_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.anh_status
-          name: Anh.
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.anh_tieflader_13t_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.anh_tieflader_13t_status
-          name: Anh. Tieflader 13t
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.anhanger_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.anhanger_status
-          name: Anhaenger
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.nea_50_kva_lima_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.nea_50_kva_lima_status
-          name: NEA 50 kVA LiMa
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.anh_pf_12t_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.anh_pf_12t_status
-          name: Anh. PF 12t
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.bergungsgruppe_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.bergungsgruppe_status
-          name: Bergungsgruppe
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.zugtrupp_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.zugtrupp_status
-          name: Zugtrupp
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.luk_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.luk_status
-          name: LuK
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.fachgruppe_elektroversorgung_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.fachgruppe_elektroversorgung_status
-          name: FG Elektroversorgung
-
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-            state_not: Einsatzbereit
-        card:
-          type: custom:mushroom-entity-card
-          entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-          name: FG Notversorgung
-
-  - title: Bearbeiten
-    path: bearbeiten
-    icon: mdi:pencil
-    cards:
-      - type: custom:mushroom-title-card
-        title: Status aendern
+      - type: entities
+        title: "Im Einsatz"
+        show_header_toggle: false
+        entities:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.technischer_berater_arbeitssicherheit_status
+              name: "Technischer Berater Arbeitssicherheit"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29503
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.stapler_35_to_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.stapler_35_to_status
+              name: "Stapler 3,5 to"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-348
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachberater_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.fachberater_status
+              name: "Fachberater"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29323
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_elektroversorgung_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.fachgruppe_elektroversorgung_status
+              name: "Fachgruppe Elektroversorgung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16539
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+              name: "Fachgruppe Notversorgung und Notinstandsetzung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16540
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.bergungsgruppe_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.bergungsgruppe_status
+              name: "Bergungsgruppe"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16541
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.zugtrupp_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.zugtrupp_status
+              name: "Zugtrupp"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16542
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.luk_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.luk_status
+              name: "LuK"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28642
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.anh_status
+              name: "Anh."
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-351
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_werkstatt_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.lkw_werkstatt_status
+              name: "LKW - Werkstatt"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-349
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_tieflader_13t_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.anh_tieflader_13t_status
+              name: "Anh. Tieflader 13t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-20502
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.gkw_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.gkw_status
+              name: "GKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-340
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anhaenger_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.anhaenger_status
+              name: "Anhaenger"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-350
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_tz_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.mtw_tz_status
+              name: "MTW TZ"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3551
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_kipper_lkr_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.lkw_kipper_lkr_status
+              name: "LKW Kipper Lkr"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-346
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_200kva_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.nea_200kva_status
+              name: "NEA 200kVA"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3550
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_lbw_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.lkw_lbw_status
+              name: "LKW Lbw"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3547
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_ov_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.mtw_ov_status
+              name: "MTW OV"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-5164
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_50_kva_lima_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.nea_50_kva_lima_status
+              name: "NEA 50 kVA LiMa"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28751
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mzkw_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.mzkw_status
+              name: "MzKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-341
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_pf_12t_status
+                state: "Im Einsatz"
+            row:
+              entity: sensor.anh_pf_12t_status
+              name: "Anh. PF 12t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-26401
 
       - type: entities
-        title: Status
+        title: "Nicht einsatzbereit"
+        show_header_toggle: false
+        entities:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.technischer_berater_arbeitssicherheit_status
+              name: "Technischer Berater Arbeitssicherheit"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29503
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.stapler_35_to_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.stapler_35_to_status
+              name: "Stapler 3,5 to"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-348
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachberater_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.fachberater_status
+              name: "Fachberater"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29323
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_elektroversorgung_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_elektroversorgung_status
+              name: "Fachgruppe Elektroversorgung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16539
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+              name: "Fachgruppe Notversorgung und Notinstandsetzung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16540
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.bergungsgruppe_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.bergungsgruppe_status
+              name: "Bergungsgruppe"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16541
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.zugtrupp_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.zugtrupp_status
+              name: "Zugtrupp"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16542
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.luk_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.luk_status
+              name: "LuK"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28642
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.anh_status
+              name: "Anh."
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-351
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_werkstatt_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.lkw_werkstatt_status
+              name: "LKW - Werkstatt"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-349
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_tieflader_13t_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.anh_tieflader_13t_status
+              name: "Anh. Tieflader 13t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-20502
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.gkw_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.gkw_status
+              name: "GKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-340
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anhaenger_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.anhaenger_status
+              name: "Anhaenger"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-350
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_tz_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.mtw_tz_status
+              name: "MTW TZ"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3551
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_kipper_lkr_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.lkw_kipper_lkr_status
+              name: "LKW Kipper Lkr"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-346
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_200kva_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.nea_200kva_status
+              name: "NEA 200kVA"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3550
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_lbw_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.lkw_lbw_status
+              name: "LKW Lbw"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3547
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_ov_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.mtw_ov_status
+              name: "MTW OV"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-5164
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_50_kva_lima_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.nea_50_kva_lima_status
+              name: "NEA 50 kVA LiMa"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28751
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mzkw_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.mzkw_status
+              name: "MzKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-341
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_pf_12t_status
+                state: "Nicht einsatzbereit"
+            row:
+              entity: sensor.anh_pf_12t_status
+              name: "Anh. PF 12t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-26401
+
+      - type: entities
+        title: "Bedingt einsatzbereit"
+        show_header_toggle: false
+        entities:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.technischer_berater_arbeitssicherheit_status
+              name: "Technischer Berater Arbeitssicherheit"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29503
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.stapler_35_to_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.stapler_35_to_status
+              name: "Stapler 3,5 to"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-348
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachberater_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.fachberater_status
+              name: "Fachberater"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29323
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_elektroversorgung_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_elektroversorgung_status
+              name: "Fachgruppe Elektroversorgung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16539
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+              name: "Fachgruppe Notversorgung und Notinstandsetzung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16540
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.bergungsgruppe_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.bergungsgruppe_status
+              name: "Bergungsgruppe"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16541
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.zugtrupp_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.zugtrupp_status
+              name: "Zugtrupp"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16542
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.luk_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.luk_status
+              name: "LuK"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28642
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.anh_status
+              name: "Anh."
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-351
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_werkstatt_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.lkw_werkstatt_status
+              name: "LKW - Werkstatt"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-349
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_tieflader_13t_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.anh_tieflader_13t_status
+              name: "Anh. Tieflader 13t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-20502
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.gkw_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.gkw_status
+              name: "GKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-340
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anhaenger_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.anhaenger_status
+              name: "Anhaenger"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-350
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_tz_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.mtw_tz_status
+              name: "MTW TZ"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3551
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_kipper_lkr_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.lkw_kipper_lkr_status
+              name: "LKW Kipper Lkr"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-346
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_200kva_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.nea_200kva_status
+              name: "NEA 200kVA"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3550
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_lbw_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.lkw_lbw_status
+              name: "LKW Lbw"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3547
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_ov_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.mtw_ov_status
+              name: "MTW OV"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-5164
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_50_kva_lima_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.nea_50_kva_lima_status
+              name: "NEA 50 kVA LiMa"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28751
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mzkw_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.mzkw_status
+              name: "MzKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-341
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_pf_12t_status
+                state: "Bedingt einsatzbereit"
+            row:
+              entity: sensor.anh_pf_12t_status
+              name: "Anh. PF 12t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-26401
+
+      - type: entities
+        title: "In Wartung"
+        show_header_toggle: false
+        entities:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                state: "In Wartung"
+            row:
+              entity: sensor.technischer_berater_arbeitssicherheit_status
+              name: "Technischer Berater Arbeitssicherheit"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29503
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.stapler_35_to_status
+                state: "In Wartung"
+            row:
+              entity: sensor.stapler_35_to_status
+              name: "Stapler 3,5 to"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-348
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachberater_status
+                state: "In Wartung"
+            row:
+              entity: sensor.fachberater_status
+              name: "Fachberater"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-29323
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_elektroversorgung_status
+                state: "In Wartung"
+            row:
+              entity: sensor.fachgruppe_elektroversorgung_status
+              name: "Fachgruppe Elektroversorgung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16539
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                state: "In Wartung"
+            row:
+              entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+              name: "Fachgruppe Notversorgung und Notinstandsetzung"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16540
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.bergungsgruppe_status
+                state: "In Wartung"
+            row:
+              entity: sensor.bergungsgruppe_status
+              name: "Bergungsgruppe"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16541
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.zugtrupp_status
+                state: "In Wartung"
+            row:
+              entity: sensor.zugtrupp_status
+              name: "Zugtrupp"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-16542
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.luk_status
+                state: "In Wartung"
+            row:
+              entity: sensor.luk_status
+              name: "LuK"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28642
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_status
+                state: "In Wartung"
+            row:
+              entity: sensor.anh_status
+              name: "Anh."
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-351
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_werkstatt_status
+                state: "In Wartung"
+            row:
+              entity: sensor.lkw_werkstatt_status
+              name: "LKW - Werkstatt"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-349
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_tieflader_13t_status
+                state: "In Wartung"
+            row:
+              entity: sensor.anh_tieflader_13t_status
+              name: "Anh. Tieflader 13t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-20502
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.gkw_status
+                state: "In Wartung"
+            row:
+              entity: sensor.gkw_status
+              name: "GKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-340
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anhaenger_status
+                state: "In Wartung"
+            row:
+              entity: sensor.anhaenger_status
+              name: "Anhaenger"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-350
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_tz_status
+                state: "In Wartung"
+            row:
+              entity: sensor.mtw_tz_status
+              name: "MTW TZ"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3551
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_kipper_lkr_status
+                state: "In Wartung"
+            row:
+              entity: sensor.lkw_kipper_lkr_status
+              name: "LKW Kipper Lkr"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-346
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_200kva_status
+                state: "In Wartung"
+            row:
+              entity: sensor.nea_200kva_status
+              name: "NEA 200kVA"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3550
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.lkw_lbw_status
+                state: "In Wartung"
+            row:
+              entity: sensor.lkw_lbw_status
+              name: "LKW Lbw"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-3547
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mtw_ov_status
+                state: "In Wartung"
+            row:
+              entity: sensor.mtw_ov_status
+              name: "MTW OV"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-5164
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.nea_50_kva_lima_status
+                state: "In Wartung"
+            row:
+              entity: sensor.nea_50_kva_lima_status
+              name: "NEA 50 kVA LiMa"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-28751
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.mzkw_status
+                state: "In Wartung"
+            row:
+              entity: sensor.mzkw_status
+              name: "MzKW"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-341
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.anh_pf_12t_status
+                state: "In Wartung"
+            row:
+              entity: sensor.anh_pf_12t_status
+              name: "Anh. PF 12t"
+              tap_action:
+                action: navigate
+                navigation_path: /stein/asset-26401
+
+  - title: "Technischer Berater Arbeitssicherheit"
+    path: asset-29503
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Technischer Berater Arbeitssicherheit"
+        subtitle: >
+          {{ state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'category') }} ·
+          Gruppe 3 · ID 29503
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.technischer_berater_arbeitssicherheit_status') }}"
+        secondary: >
+          {{ state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'radio_name') }}
+          {%- if state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.technischer_berater_arbeitssicherheit_status_setzen
+            name: Status
+          - entity: switch.technischer_berater_arbeitssicherheit_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.technischer_berater_arbeitssicherheit_label
+            name: Bezeichnung
+          - entity: text.technischer_berater_arbeitssicherheit_name
+            name: Name
+          - entity: text.technischer_berater_arbeitssicherheit_comment
+            name: Kommentar
+          - entity: text.technischer_berater_arbeitssicherheit_category
+            name: Kategorie
+          - entity: text.technischer_berater_arbeitssicherheit_radioname
+            name: Funkrufname
+          - entity: text.technischer_berater_arbeitssicherheit_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.technischer_berater_arbeitssicherheit_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.technischer_berater_arbeitssicherheit_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.technischer_berater_arbeitssicherheit_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.technischer_berater_arbeitssicherheit_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.technischer_berater_arbeitssicherheit_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.technischer_berater_arbeitssicherheit_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Stapler 3,5 to"
+    path: asset-348
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Stapler 3,5 to"
+        subtitle: >
+          {{ state_attr('sensor.stapler_35_to_status', 'category') }} ·
+          Gruppe 1 · ID 348
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.stapler_35_to_status') }}"
+        secondary: >
+          {{ state_attr('sensor.stapler_35_to_status', 'radio_name') }}
+          {%- if state_attr('sensor.stapler_35_to_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.stapler_35_to_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.stapler_35_to_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.stapler_35_to_status_setzen
+            name: Status
+          - entity: switch.stapler_35_to_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.stapler_35_to_label
+            name: Bezeichnung
+          - entity: text.stapler_35_to_name
+            name: Name
+          - entity: text.stapler_35_to_comment
+            name: Kommentar
+          - entity: text.stapler_35_to_category
+            name: Kategorie
+          - entity: text.stapler_35_to_radioname
+            name: Funkrufname
+          - entity: text.stapler_35_to_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.stapler_35_to_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.stapler_35_to_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.stapler_35_to_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.stapler_35_to_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.stapler_35_to_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.stapler_35_to_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.stapler_35_to_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Fachberater"
+    path: asset-29323
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Fachberater"
+        subtitle: >
+          {{ state_attr('sensor.fachberater_status', 'category') }} ·
+          Gruppe 3 · ID 29323
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.fachberater_status') }}"
+        secondary: >
+          {{ state_attr('sensor.fachberater_status', 'radio_name') }}
+          {%- if state_attr('sensor.fachberater_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.fachberater_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.fachberater_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.fachberater_status_setzen
+            name: Status
+          - entity: switch.fachberater_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.fachberater_label
+            name: Bezeichnung
+          - entity: text.fachberater_name
+            name: Name
+          - entity: text.fachberater_comment
+            name: Kommentar
+          - entity: text.fachberater_category
+            name: Kategorie
+          - entity: text.fachberater_radioname
+            name: Funkrufname
+          - entity: text.fachberater_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.fachberater_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.fachberater_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.fachberater_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.fachberater_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.fachberater_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.fachberater_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.fachberater_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Fachgruppe Elektroversorgung"
+    path: asset-16539
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Fachgruppe Elektroversorgung"
+        subtitle: >
+          {{ state_attr('sensor.fachgruppe_elektroversorgung_status', 'category') }} ·
+          Gruppe 4 · ID 16539
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.fachgruppe_elektroversorgung_status') }}"
+        secondary: >
+          {{ state_attr('sensor.fachgruppe_elektroversorgung_status', 'radio_name') }}
+          {%- if state_attr('sensor.fachgruppe_elektroversorgung_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.fachgruppe_elektroversorgung_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.fachgruppe_elektroversorgung_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.fachgruppe_elektroversorgung_status_setzen
+            name: Status
+          - entity: switch.fachgruppe_elektroversorgung_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.fachgruppe_elektroversorgung_label
+            name: Bezeichnung
+          - entity: text.fachgruppe_elektroversorgung_name
+            name: Name
+          - entity: text.fachgruppe_elektroversorgung_comment
+            name: Kommentar
+          - entity: text.fachgruppe_elektroversorgung_category
+            name: Kategorie
+          - entity: text.fachgruppe_elektroversorgung_radioname
+            name: Funkrufname
+          - entity: text.fachgruppe_elektroversorgung_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.fachgruppe_elektroversorgung_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.fachgruppe_elektroversorgung_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.fachgruppe_elektroversorgung_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.fachgruppe_elektroversorgung_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.fachgruppe_elektroversorgung_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.fachgruppe_elektroversorgung_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.fachgruppe_elektroversorgung_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Fachgruppe Notversorgung und Notinstandsetzung"
+    path: asset-16540
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Fachgruppe Notversorgung und Notinstandsetzung"
+        subtitle: >
+          {{ state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'category') }} ·
+          Gruppe 4 · ID 16540
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status') }}"
+        secondary: >
+          {{ state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'radio_name') }}
+          {%- if state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.fachgruppe_notversorgung_und_notinstandsetzung_status_setzen
+            name: Status
+          - entity: switch.fachgruppe_notversorgung_und_notinstandsetzung_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_label
+            name: Bezeichnung
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_name
+            name: Name
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_comment
+            name: Kommentar
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_category
+            name: Kategorie
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_radioname
+            name: Funkrufname
+          - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.fachgruppe_notversorgung_und_notinstandsetzung_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Bergungsgruppe"
+    path: asset-16541
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Bergungsgruppe"
+        subtitle: >
+          {{ state_attr('sensor.bergungsgruppe_status', 'category') }} ·
+          Gruppe 4 · ID 16541
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.bergungsgruppe_status') }}"
+        secondary: >
+          {{ state_attr('sensor.bergungsgruppe_status', 'radio_name') }}
+          {%- if state_attr('sensor.bergungsgruppe_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.bergungsgruppe_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.bergungsgruppe_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.bergungsgruppe_status_setzen
+            name: Status
+          - entity: switch.bergungsgruppe_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.bergungsgruppe_label
+            name: Bezeichnung
+          - entity: text.bergungsgruppe_name
+            name: Name
+          - entity: text.bergungsgruppe_comment
+            name: Kommentar
+          - entity: text.bergungsgruppe_category
+            name: Kategorie
+          - entity: text.bergungsgruppe_radioname
+            name: Funkrufname
+          - entity: text.bergungsgruppe_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.bergungsgruppe_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.bergungsgruppe_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.bergungsgruppe_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.bergungsgruppe_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.bergungsgruppe_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.bergungsgruppe_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.bergungsgruppe_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Zugtrupp"
+    path: asset-16542
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Zugtrupp"
+        subtitle: >
+          {{ state_attr('sensor.zugtrupp_status', 'category') }} ·
+          Gruppe 4 · ID 16542
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.zugtrupp_status') }}"
+        secondary: >
+          {{ state_attr('sensor.zugtrupp_status', 'radio_name') }}
+          {%- if state_attr('sensor.zugtrupp_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.zugtrupp_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.zugtrupp_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.zugtrupp_status_setzen
+            name: Status
+          - entity: switch.zugtrupp_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.zugtrupp_label
+            name: Bezeichnung
+          - entity: text.zugtrupp_name
+            name: Name
+          - entity: text.zugtrupp_comment
+            name: Kommentar
+          - entity: text.zugtrupp_category
+            name: Kategorie
+          - entity: text.zugtrupp_radioname
+            name: Funkrufname
+          - entity: text.zugtrupp_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.zugtrupp_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.zugtrupp_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.zugtrupp_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.zugtrupp_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.zugtrupp_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.zugtrupp_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.zugtrupp_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "LuK"
+    path: asset-28642
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "LuK"
+        subtitle: >
+          {{ state_attr('sensor.luk_status', 'category') }} ·
+          Gruppe 4 · ID 28642
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.luk_status') }}"
+        secondary: >
+          {{ state_attr('sensor.luk_status', 'radio_name') }}
+          {%- if state_attr('sensor.luk_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.luk_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.luk_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.luk_status_setzen
+            name: Status
+          - entity: switch.luk_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.luk_label
+            name: Bezeichnung
+          - entity: text.luk_name
+            name: Name
+          - entity: text.luk_comment
+            name: Kommentar
+          - entity: text.luk_category
+            name: Kategorie
+          - entity: text.luk_radioname
+            name: Funkrufname
+          - entity: text.luk_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.luk_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.luk_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.luk_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.luk_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.luk_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.luk_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.luk_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Anh."
+    path: asset-351
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Anh."
+        subtitle: >
+          {{ state_attr('sensor.anh_status', 'category') }} ·
+          Gruppe 5 · ID 351
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.anh_status') }}"
+        secondary: >
+          {{ state_attr('sensor.anh_status', 'radio_name') }}
+          {%- if state_attr('sensor.anh_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.anh_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.anh_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.anh_status_setzen
+            name: Status
+          - entity: switch.anh_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.anh_label
+            name: Bezeichnung
+          - entity: text.anh_name
+            name: Name
+          - entity: text.anh_comment
+            name: Kommentar
+          - entity: text.anh_category
+            name: Kategorie
+          - entity: text.anh_radioname
+            name: Funkrufname
+          - entity: text.anh_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anh_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.anh_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.anh_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.anh_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.anh_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.anh_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.anh_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "LKW - Werkstatt"
+    path: asset-349
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "LKW - Werkstatt"
+        subtitle: >
+          {{ state_attr('sensor.lkw_werkstatt_status', 'category') }} ·
+          Gruppe 1 · ID 349
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.lkw_werkstatt_status') }}"
+        secondary: >
+          {{ state_attr('sensor.lkw_werkstatt_status', 'radio_name') }}
+          {%- if state_attr('sensor.lkw_werkstatt_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.lkw_werkstatt_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.lkw_werkstatt_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.lkw_werkstatt_status_setzen
+            name: Status
+          - entity: switch.lkw_werkstatt_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.lkw_werkstatt_label
+            name: Bezeichnung
+          - entity: text.lkw_werkstatt_name
+            name: Name
+          - entity: text.lkw_werkstatt_comment
+            name: Kommentar
+          - entity: text.lkw_werkstatt_category
+            name: Kategorie
+          - entity: text.lkw_werkstatt_radioname
+            name: Funkrufname
+          - entity: text.lkw_werkstatt_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.lkw_werkstatt_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.lkw_werkstatt_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.lkw_werkstatt_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.lkw_werkstatt_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.lkw_werkstatt_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.lkw_werkstatt_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.lkw_werkstatt_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Anh. Tieflader 13t"
+    path: asset-20502
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Anh. Tieflader 13t"
+        subtitle: >
+          {{ state_attr('sensor.anh_tieflader_13t_status', 'category') }} ·
+          Gruppe 5 · ID 20502
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.anh_tieflader_13t_status') }}"
+        secondary: >
+          {{ state_attr('sensor.anh_tieflader_13t_status', 'radio_name') }}
+          {%- if state_attr('sensor.anh_tieflader_13t_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.anh_tieflader_13t_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.anh_tieflader_13t_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.anh_tieflader_13t_status_setzen
+            name: Status
+          - entity: switch.anh_tieflader_13t_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.anh_tieflader_13t_label
+            name: Bezeichnung
+          - entity: text.anh_tieflader_13t_name
+            name: Name
+          - entity: text.anh_tieflader_13t_comment
+            name: Kommentar
+          - entity: text.anh_tieflader_13t_category
+            name: Kategorie
+          - entity: text.anh_tieflader_13t_radioname
+            name: Funkrufname
+          - entity: text.anh_tieflader_13t_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anh_tieflader_13t_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.anh_tieflader_13t_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.anh_tieflader_13t_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.anh_tieflader_13t_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.anh_tieflader_13t_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.anh_tieflader_13t_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.anh_tieflader_13t_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "GKW"
+    path: asset-340
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "GKW"
+        subtitle: >
+          {{ state_attr('sensor.gkw_status', 'category') }} ·
+          Gruppe 1 · ID 340
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.gkw_status') }}"
+        secondary: >
+          {{ state_attr('sensor.gkw_status', 'radio_name') }}
+          {%- if state_attr('sensor.gkw_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.gkw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.gkw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
         show_header_toggle: false
         entities:
           - entity: select.gkw_status_setzen
-            name: GKW
-          - entity: select.lkw_werkstatt_status_setzen
-            name: LKW Werkstatt
-          - entity: select.stapler_35_to_status_setzen
-            name: Stapler 3,5 to
+            name: Status
+          - entity: switch.gkw_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.gkw_label
+            name: Bezeichnung
+          - entity: text.gkw_name
+            name: Name
+          - entity: text.gkw_comment
+            name: Kommentar
+          - entity: text.gkw_category
+            name: Kategorie
+          - entity: text.gkw_radioname
+            name: Funkrufname
+          - entity: text.gkw_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.gkw_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.gkw_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.gkw_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.gkw_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.gkw_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.gkw_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.gkw_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Anhaenger"
+    path: asset-350
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Anhaenger"
+        subtitle: >
+          {{ state_attr('sensor.anhaenger_status', 'category') }} ·
+          Gruppe 5 · ID 350
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.anhaenger_status') }}"
+        secondary: >
+          {{ state_attr('sensor.anhaenger_status', 'radio_name') }}
+          {%- if state_attr('sensor.anhaenger_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.anhaenger_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.anhaenger_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.anhaenger_status_setzen
+            name: Status
+          - entity: switch.anhaenger_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.anhaenger_label
+            name: Bezeichnung
+          - entity: text.anhaenger_name
+            name: Name
+          - entity: text.anhaenger_comment
+            name: Kommentar
+          - entity: text.anhaenger_category
+            name: Kategorie
+          - entity: text.anhaenger_radioname
+            name: Funkrufname
+          - entity: text.anhaenger_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anhaenger_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.anhaenger_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.anhaenger_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.anhaenger_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.anhaenger_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.anhaenger_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.anhaenger_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "MTW TZ"
+    path: asset-3551
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "MTW TZ"
+        subtitle: >
+          {{ state_attr('sensor.mtw_tz_status', 'category') }} ·
+          Gruppe 1 · ID 3551
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.mtw_tz_status') }}"
+        secondary: >
+          {{ state_attr('sensor.mtw_tz_status', 'radio_name') }}
+          {%- if state_attr('sensor.mtw_tz_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.mtw_tz_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.mtw_tz_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.mtw_tz_status_setzen
-            name: MTW TZ
+            name: Status
+          - entity: switch.mtw_tz_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.mtw_tz_label
+            name: Bezeichnung
+          - entity: text.mtw_tz_name
+            name: Name
+          - entity: text.mtw_tz_comment
+            name: Kommentar
+          - entity: text.mtw_tz_category
+            name: Kategorie
+          - entity: text.mtw_tz_radioname
+            name: Funkrufname
+          - entity: text.mtw_tz_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.mtw_tz_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.mtw_tz_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.mtw_tz_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.mtw_tz_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.mtw_tz_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.mtw_tz_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.mtw_tz_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "LKW Kipper Lkr"
+    path: asset-346
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "LKW Kipper Lkr"
+        subtitle: >
+          {{ state_attr('sensor.lkw_kipper_lkr_status', 'category') }} ·
+          Gruppe 1 · ID 346
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.lkw_kipper_lkr_status') }}"
+        secondary: >
+          {{ state_attr('sensor.lkw_kipper_lkr_status', 'radio_name') }}
+          {%- if state_attr('sensor.lkw_kipper_lkr_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.lkw_kipper_lkr_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.lkw_kipper_lkr_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.lkw_kipper_lkr_status_setzen
-            name: LKW Kipper Lkr
+            name: Status
+          - entity: switch.lkw_kipper_lkr_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.lkw_kipper_lkr_label
+            name: Bezeichnung
+          - entity: text.lkw_kipper_lkr_name
+            name: Name
+          - entity: text.lkw_kipper_lkr_comment
+            name: Kommentar
+          - entity: text.lkw_kipper_lkr_category
+            name: Kategorie
+          - entity: text.lkw_kipper_lkr_radioname
+            name: Funkrufname
+          - entity: text.lkw_kipper_lkr_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.lkw_kipper_lkr_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.lkw_kipper_lkr_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.lkw_kipper_lkr_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.lkw_kipper_lkr_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.lkw_kipper_lkr_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.lkw_kipper_lkr_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.lkw_kipper_lkr_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "NEA 200kVA"
+    path: asset-3550
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "NEA 200kVA"
+        subtitle: >
+          {{ state_attr('sensor.nea_200kva_status', 'category') }} ·
+          Gruppe 1 · ID 3550
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.nea_200kva_status') }}"
+        secondary: >
+          {{ state_attr('sensor.nea_200kva_status', 'radio_name') }}
+          {%- if state_attr('sensor.nea_200kva_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.nea_200kva_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.nea_200kva_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.nea_200kva_status_setzen
-            name: NEA 200kVA
+            name: Status
+          - entity: switch.nea_200kva_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.nea_200kva_label
+            name: Bezeichnung
+          - entity: text.nea_200kva_name
+            name: Name
+          - entity: text.nea_200kva_comment
+            name: Kommentar
+          - entity: text.nea_200kva_category
+            name: Kategorie
+          - entity: text.nea_200kva_radioname
+            name: Funkrufname
+          - entity: text.nea_200kva_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.nea_200kva_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.nea_200kva_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.nea_200kva_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.nea_200kva_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.nea_200kva_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.nea_200kva_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.nea_200kva_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "LKW Lbw"
+    path: asset-3547
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "LKW Lbw"
+        subtitle: >
+          {{ state_attr('sensor.lkw_lbw_status', 'category') }} ·
+          Gruppe 1 · ID 3547
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.lkw_lbw_status') }}"
+        secondary: >
+          {{ state_attr('sensor.lkw_lbw_status', 'radio_name') }}
+          {%- if state_attr('sensor.lkw_lbw_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.lkw_lbw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.lkw_lbw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.lkw_lbw_status_setzen
-            name: LKW Lbw
+            name: Status
+          - entity: switch.lkw_lbw_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.lkw_lbw_label
+            name: Bezeichnung
+          - entity: text.lkw_lbw_name
+            name: Name
+          - entity: text.lkw_lbw_comment
+            name: Kommentar
+          - entity: text.lkw_lbw_category
+            name: Kategorie
+          - entity: text.lkw_lbw_radioname
+            name: Funkrufname
+          - entity: text.lkw_lbw_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.lkw_lbw_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.lkw_lbw_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.lkw_lbw_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.lkw_lbw_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.lkw_lbw_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.lkw_lbw_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.lkw_lbw_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "MTW OV"
+    path: asset-5164
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "MTW OV"
+        subtitle: >
+          {{ state_attr('sensor.mtw_ov_status', 'category') }} ·
+          Gruppe 1 · ID 5164
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.mtw_ov_status') }}"
+        secondary: >
+          {{ state_attr('sensor.mtw_ov_status', 'radio_name') }}
+          {%- if state_attr('sensor.mtw_ov_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.mtw_ov_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.mtw_ov_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.mtw_ov_status_setzen
-            name: MTW OV
-          - entity: select.mzkw_status_setzen
-            name: MzKW
-          - entity: select.anh_status_setzen
-            name: Anh.
-          - entity: select.anh_tieflader_13t_status_setzen
-            name: Anh. Tieflader 13t
-          - entity: select.anhanger_status_setzen
-            name: Anhaenger
+            name: Status
+          - entity: switch.mtw_ov_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.mtw_ov_label
+            name: Bezeichnung
+          - entity: text.mtw_ov_name
+            name: Name
+          - entity: text.mtw_ov_comment
+            name: Kommentar
+          - entity: text.mtw_ov_category
+            name: Kategorie
+          - entity: text.mtw_ov_radioname
+            name: Funkrufname
+          - entity: text.mtw_ov_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.mtw_ov_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.mtw_ov_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.mtw_ov_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.mtw_ov_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.mtw_ov_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.mtw_ov_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.mtw_ov_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "NEA 50 kVA LiMa"
+    path: asset-28751
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "NEA 50 kVA LiMa"
+        subtitle: >
+          {{ state_attr('sensor.nea_50_kva_lima_status', 'category') }} ·
+          Gruppe 5 · ID 28751
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.nea_50_kva_lima_status') }}"
+        secondary: >
+          {{ state_attr('sensor.nea_50_kva_lima_status', 'radio_name') }}
+          {%- if state_attr('sensor.nea_50_kva_lima_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.nea_50_kva_lima_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.nea_50_kva_lima_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.nea_50_kva_lima_status_setzen
-            name: NEA 50 kVA LiMa
+            name: Status
+          - entity: switch.nea_50_kva_lima_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.nea_50_kva_lima_label
+            name: Bezeichnung
+          - entity: text.nea_50_kva_lima_name
+            name: Name
+          - entity: text.nea_50_kva_lima_comment
+            name: Kommentar
+          - entity: text.nea_50_kva_lima_category
+            name: Kategorie
+          - entity: text.nea_50_kva_lima_radioname
+            name: Funkrufname
+          - entity: text.nea_50_kva_lima_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.nea_50_kva_lima_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.nea_50_kva_lima_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.nea_50_kva_lima_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.nea_50_kva_lima_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.nea_50_kva_lima_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.nea_50_kva_lima_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.nea_50_kva_lima_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "MzKW"
+    path: asset-341
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "MzKW"
+        subtitle: >
+          {{ state_attr('sensor.mzkw_status', 'category') }} ·
+          Gruppe 1 · ID 341
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.mzkw_status') }}"
+        secondary: >
+          {{ state_attr('sensor.mzkw_status', 'radio_name') }}
+          {%- if state_attr('sensor.mzkw_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.mzkw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.mzkw_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
+          - entity: select.mzkw_status_setzen
+            name: Status
+          - entity: switch.mzkw_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.mzkw_label
+            name: Bezeichnung
+          - entity: text.mzkw_name
+            name: Name
+          - entity: text.mzkw_comment
+            name: Kommentar
+          - entity: text.mzkw_category
+            name: Kategorie
+          - entity: text.mzkw_radioname
+            name: Funkrufname
+          - entity: text.mzkw_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.mzkw_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.mzkw_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.mzkw_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.mzkw_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.mzkw_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.mzkw_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.mzkw_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
+
+  - title: "Anh. PF 12t"
+    path: asset-26401
+    icon: mdi:fire-truck
+    cards:
+
+      - type: custom:mushroom-title-card
+        title: "Anh. PF 12t"
+        subtitle: >
+          {{ state_attr('sensor.anh_pf_12t_status', 'category') }} ·
+          Gruppe 5 · ID 26401
+
+      - type: custom:mushroom-template-card
+        primary: "{{ states('sensor.anh_pf_12t_status') }}"
+        secondary: >
+          {{ state_attr('sensor.anh_pf_12t_status', 'radio_name') }}
+          {%- if state_attr('sensor.anh_pf_12t_status', 'operation_reservation') %} · Einsatzreserviert{%- endif %}
+        icon: >
+          {%- set s = state_attr('sensor.anh_pf_12t_status', 'status_raw') -%}
+          {%- if s == 'ready' %}mdi:check-circle
+          {%- elif s == 'notready' %}mdi:close-circle
+          {%- elif s == 'semiready' %}mdi:alert-circle
+          {%- elif s == 'inuse' %}mdi:fire-truck
+          {%- else %}mdi:wrench{%- endif %}
+        icon_color: >
+          {%- set s = state_attr('sensor.anh_pf_12t_status', 'status_raw') -%}
+          {%- if s == 'ready' %}green
+          {%- elif s == 'notready' %}red
+          {%- elif s == 'semiready' %}orange
+          {%- elif s == 'inuse' %}blue
+          {%- else %}purple{%- endif %}
+
+      - type: entities
+        title: Status aendern
+        show_header_toggle: false
+        entities:
           - entity: select.anh_pf_12t_status_setzen
-            name: Anh. PF 12t
-          - entity: select.technischer_berater_arbeitssicherheit_status_setzen
-            name: Techn. Berater
-          - entity: select.fachberater_status_setzen
-            name: Fachberater
-          - entity: select.bergungsgruppe_status_setzen
-            name: Bergungsgruppe
-          - entity: select.zugtrupp_status_setzen
-            name: Zugtrupp
-          - entity: select.luk_status_setzen
-            name: LuK
-          - entity: select.fachgruppe_elektroversorgung_status_setzen
-            name: FG Elektroversorgung
-          - entity: select.fachgruppe_notversorgung_und_notinstandsetzung_status_setzen
-            name: FG Notversorgung
+            name: Status
+          - entity: switch.anh_pf_12t_einsatzreservierung
+            name: Einsatzreservierung
+
+      - type: entities
+        title: Felder bearbeiten
+        show_header_toggle: false
+        entities:
+          - entity: text.anh_pf_12t_label
+            name: Bezeichnung
+          - entity: text.anh_pf_12t_name
+            name: Name
+          - entity: text.anh_pf_12t_comment
+            name: Kommentar
+          - entity: text.anh_pf_12t_category
+            name: Kategorie
+          - entity: text.anh_pf_12t_radioname
+            name: Funkrufname
+          - entity: text.anh_pf_12t_issi
+            name: ISSI
+
+      - type: entities
+        title: Informationen
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anh_pf_12t_status
+            attribute: radio_name
+            name: Funkrufname
+            icon: mdi:radio
+          - type: attribute
+            entity: sensor.anh_pf_12t_status
+            attribute: issi
+            name: ISSI
+            icon: mdi:signal
+          - type: attribute
+            entity: sensor.anh_pf_12t_status
+            attribute: category
+            name: Kategorie
+            icon: mdi:shape
+          - type: attribute
+            entity: sensor.anh_pf_12t_status
+            attribute: hu_valid_until
+            name: HU gueltig bis
+            icon: mdi:calendar-check
+          - type: attribute
+            entity: sensor.anh_pf_12t_status
+            attribute: comment
+            name: Kommentar
+            icon: mdi:comment-text
+
+      - type: custom:mushroom-template-card
+        primary: Zuletzt geaendert
+        secondary: >
+          {%- set by = state_attr('sensor.anh_pf_12t_status', 'last_modified_by') -%}
+          {%- set ts = state_attr('sensor.anh_pf_12t_status', 'last_modified') -%}
+          {%- if by and ts -%}
+            von {{ by }} am {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- elif ts -%}
+            {{ as_timestamp(ts) | timestamp_custom('%d. %b %Y %H:%M') }}
+          {%- else -%}
+            Unbekannt
+          {%- endif %}
+        icon: mdi:clock-edit
+        icon_color: grey
+
+      - type: button
+        name: Zurueck zur Uebersicht
+        icon: mdi:arrow-left
+        tap_action:
+          action: navigate
+          navigation_path: /stein/uebersicht
 
   - title: Ortsverband
     path: ortsverband
     icon: mdi:information
     cards:
       - type: custom:mushroom-title-card
-        title: Ortsverband
+        title: Ortsverband & API
+
+      - type: custom:mushroom-entity-card
+        entity: sensor.stein_verbindung
+        name: API Nutzer
+        icon: mdi:account-circle
+
       - type: entities
         title: API Verbindung
+        show_header_toggle: false
         entities:
           - entity: sensor.stein_verbindung
             name: Nutzer
@@ -445,6 +3684,21 @@ views:
             attribute: scope
             name: Zugriffsbereich
             icon: mdi:shield-account
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: scope_role_entity
+            name: Entitaet
+            icon: mdi:identifier
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: scope_role_permission
+            name: Berechtigung
+            icon: mdi:key
+          - type: attribute
+            entity: sensor.stein_verbindung
+            attribute: tech_user
+            name: Technischer Nutzer
+            icon: mdi:robot
           - type: attribute
             entity: sensor.stein_verbindung
             attribute: active
