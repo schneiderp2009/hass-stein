@@ -6,7 +6,7 @@ views:
   max_columns: 1
   cards:
   - type: custom:mushroom-template-card
-    primary: THW OV Gmünd
+    primary: THW OV Gmuend
     secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default('''') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
     icon: mdi:home-group
     icon_color: '{% if states(''sensor.stein_api_stein_verbindung'') not in [''unavailable'',''unknown'',''Unbekannt''] %}green{% else %}red{% endif %}'
@@ -1652,7 +1652,7 @@ views:
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-title-card
-    title: API & Ortsverband
+    title: API und Ortsverband
   - type: entities
     show_header_toggle: false
     entities:

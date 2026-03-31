@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import aiohttp
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -12,13 +11,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import SteinApi, SteinAuthError, SteinApiError
-from .const import (
-    DOMAIN,
-    CONF_API_TOKEN,
-    CONF_BU_IDS,
-    CONF_SCAN_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
-)
+from .const import DOMAIN, CONF_API_TOKEN, CONF_BU_IDS, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +33,6 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             token = user_input[CONF_API_TOKEN].strip()
             bu_ids_raw = user_input[CONF_BU_IDS].strip()
-            scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
             try:
                 bu_ids = _parse_bu_ids(bu_ids_raw)
@@ -72,7 +64,7 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         data={
                             CONF_API_TOKEN: token,
                             CONF_BU_IDS: bu_ids,
-                            CONF_SCAN_INTERVAL: scan_interval,
+                            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
                         },
                     )
 
@@ -80,9 +72,6 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {
                 vol.Required(CONF_API_TOKEN): str,
                 vol.Required(CONF_BU_IDS): str,
-                vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
-                    int, vol.Range(min=120)
-                ),
             }
         )
 
@@ -99,7 +88,7 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SteinOptionsFlow(config_entries.OptionsFlow):
-    """Options flow for changing scan interval."""
+    """Options flow – only scan interval."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self.config_entry = config_entry
@@ -118,7 +107,7 @@ class SteinOptionsFlow(config_entries.OptionsFlow):
                         CONF_SCAN_INTERVAL,
                         self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ),
-                ): vol.All(int, vol.Range(min=10)),
+                ): vol.All(int, vol.Range(min=120)),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

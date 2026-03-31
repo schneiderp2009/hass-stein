@@ -1,6 +1,7 @@
 """DataUpdateCoordinator for STEIN."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -13,12 +14,12 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# BU and userinfo change rarely – only fetch every N asset refreshes
-_SLOW_FETCH_EVERY = 10
+_SLOW_FETCH_EVERY = 10  # BU + userinfo only every 10th refresh
+_RETRY_DELAY = 65       # seconds to wait after 429
 
 
 class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Fetch all STEIN data and distribute to entities."""
+    """Fetch STEIN data with 429-aware retry logic."""
 
     def __init__(
         self,
@@ -41,25 +42,30 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._refresh_count = 0
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch data from STEIN API."""
+        """Fetch data – retry once after 429."""
         self._refresh_count += 1
-        do_slow_fetch = (self._refresh_count == 1) or (self._refresh_count % _SLOW_FETCH_EVERY == 0)
+        do_slow = (self._refresh_count == 1) or (self._refresh_count % _SLOW_FETCH_EVERY == 0)
 
-        # Always fetch assets (primary data)
-        try:
-            raw_assets = await self.api.get_assets(self.bu_ids)
-        except SteinApiError as err:
-            raise UpdateFailed(f"STEIN API error: {err}") from err
+        # Assets – retry once on 429
+        for attempt in range(2):
+            try:
+                raw_assets = await self.api.get_assets(self.bu_ids)
+                break
+            except SteinApiError as err:
+                if "429" in str(err) and attempt == 0:
+                    _LOGGER.warning("STEIN 429 – waiting %ss before retry", _RETRY_DELAY)
+                    await asyncio.sleep(_RETRY_DELAY)
+                else:
+                    raise UpdateFailed(f"STEIN API error: {err}") from err
 
         assets: dict[int, dict] = {}
         for asset in raw_assets:
-            asset_id = asset.get("id")
-            if asset_id is not None:
-                assets[asset_id] = asset
+            aid = asset.get("id")
+            if aid is not None:
+                assets[aid] = asset
         self.assets = assets
 
-        # Fetch BU and userinfo only occasionally (rate-limit friendly)
-        if do_slow_fetch:
+        if do_slow:
             for bu_id in self.bu_ids:
                 try:
                     bu = await self.api.get_bu(bu_id)
@@ -67,16 +73,9 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.bus[bu_id] = bu
                 except SteinApiError as err:
                     _LOGGER.warning("Could not fetch BU %s: %s", bu_id, err)
-
             try:
                 self.userinfo = await self.api.get_userinfo() or self.userinfo
             except SteinApiError as err:
                 _LOGGER.warning("Could not fetch userinfo: %s", err)
-        else:
-            _LOGGER.debug(
-                "STEIN skipping BU/userinfo fetch (cycle %s/%s)",
-                self._refresh_count,
-                _SLOW_FETCH_EVERY,
-            )
 
         return {"assets": self.assets, "bus": self.bus, "userinfo": self.userinfo}
