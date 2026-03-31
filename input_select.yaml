@@ -1,4 +1,4 @@
-# Fuege diesen Block in /config/configuration.yaml ein:
+# Inhalt in /config/configuration.yaml einfuegen:
 #
 # input_select:
 #   stein_filter:
@@ -6,7 +6,8 @@
 #     options:
 #       - Alle
 #       - Fahrzeuge
-#       - Personal
+#       - Geraete
+#       - Sonderfunktionen
 #       - Einheiten
 #       - Anhaenger
 #       - Probleme
@@ -24,7 +25,8 @@ input_select:
     options:
       - Alle
       - Fahrzeuge
-      - Personal
+      - Geraete
+      - Sonderfunktionen
       - Einheiten
       - Anhaenger
       - Probleme
