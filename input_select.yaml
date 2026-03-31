@@ -1,0 +1,37 @@
+# Fuege diesen Block in /config/configuration.yaml ein:
+#
+# input_select:
+#   stein_filter:
+#     name: STEIN Filter
+#     options:
+#       - Alle
+#       - Fahrzeuge
+#       - Personal
+#       - Einheiten
+#       - Anhaenger
+#       - Probleme
+#       - Bereit
+#       - Bedingt
+#       - Nicht bereit
+#       - Im Einsatz
+#       - Wartung
+#     initial: Alle
+#     icon: mdi:filter
+
+input_select:
+  stein_filter:
+    name: STEIN Filter
+    options:
+      - Alle
+      - Fahrzeuge
+      - Personal
+      - Einheiten
+      - Anhaenger
+      - Probleme
+      - Bereit
+      - Bedingt
+      - Nicht bereit
+      - Im Einsatz
+      - Wartung
+    initial: Alle
+    icon: mdi:filter
