@@ -68,23 +68,21 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         },
                     )
 
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_API_TOKEN): str,
-                vol.Required(CONF_BU_IDS): str,
-            }
-        )
-
         return self.async_show_form(
             step_id="user",
-            data_schema=schema,
+            data_schema=vol.Schema({
+                vol.Required(CONF_API_TOKEN): str,
+                vol.Required(CONF_BU_IDS): str,
+            }),
             errors=errors,
         )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        return SteinOptionsFlow(config_entry)
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        return SteinOptionsFlow()
 
 
 class SteinOptionsFlow(config_entries.OptionsFlow):
@@ -96,15 +94,16 @@ class SteinOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_SCAN_INTERVAL,
-                    default=self.config_entry.options.get(
-                        CONF_SCAN_INTERVAL,
-                        self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ),
-                ): vol.All(int, vol.Range(min=120)),
-            }
+        current_interval = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional(CONF_SCAN_INTERVAL, default=current_interval): vol.All(
+                    int, vol.Range(min=120)
+                ),
+            }),
+        )

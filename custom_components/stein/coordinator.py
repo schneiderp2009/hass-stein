@@ -14,26 +14,15 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-_SLOW_FETCH_EVERY = 10  # BU + userinfo only every 10th refresh
-_RETRY_DELAY = 65       # seconds to wait after 429
+_SLOW_FETCH_EVERY = 10
+_RATE_LIMIT_DELAY = 70  # seconds to wait after 429
 
 
 class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Fetch STEIN data with 429-aware retry logic."""
+    """Fetch STEIN data with 429-aware spacing between requests."""
 
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        api: SteinApi,
-        bu_ids: list[int],
-        scan_interval: int,
-    ) -> None:
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
-        )
+    def __init__(self, hass: HomeAssistant, api: SteinApi, bu_ids: list[int], scan_interval: int) -> None:
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=scan_interval))
         self.api = api
         self.bu_ids = bu_ids
         self.assets: dict[int, dict] = {}
@@ -41,22 +30,42 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.userinfo: dict = {}
         self._refresh_count = 0
 
+    async def _safe_get(self, coro, description: str):
+        """Run a coroutine, wait and retry once on 429."""
+        try:
+            return await coro
+        except SteinApiError as err:
+            if "429" in str(err):
+                _LOGGER.warning("STEIN 429 on %s – waiting %ss", description, _RATE_LIMIT_DELAY)
+                await asyncio.sleep(_RATE_LIMIT_DELAY)
+                try:
+                    return await coro
+                except SteinApiError as retry_err:
+                    _LOGGER.warning("STEIN retry failed for %s: %s", description, retry_err)
+                    return None
+            _LOGGER.warning("STEIN error on %s: %s", description, err)
+            return None
+
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch data – retry once after 429."""
         self._refresh_count += 1
         do_slow = (self._refresh_count == 1) or (self._refresh_count % _SLOW_FETCH_EVERY == 0)
 
-        # Assets – retry once on 429
-        for attempt in range(2):
-            try:
-                raw_assets = await self.api.get_assets(self.bu_ids)
-                break
-            except SteinApiError as err:
-                if "429" in str(err) and attempt == 0:
-                    _LOGGER.warning("STEIN 429 – waiting %ss before retry", _RETRY_DELAY)
-                    await asyncio.sleep(_RETRY_DELAY)
-                else:
-                    raise UpdateFailed(f"STEIN API error: {err}") from err
+        # Always fetch assets – with 1s spacing before to avoid burst
+        if self._refresh_count > 1:
+            await asyncio.sleep(1)
+
+        try:
+            raw_assets = await self.api.get_assets(self.bu_ids)
+        except SteinApiError as err:
+            if "429" in str(err):
+                _LOGGER.warning("STEIN 429 on assets – waiting %ss", _RATE_LIMIT_DELAY)
+                await asyncio.sleep(_RATE_LIMIT_DELAY)
+                try:
+                    raw_assets = await self.api.get_assets(self.bu_ids)
+                except SteinApiError as retry_err:
+                    raise UpdateFailed(f"STEIN API error after retry: {retry_err}") from retry_err
+            else:
+                raise UpdateFailed(f"STEIN API error: {err}") from err
 
         assets: dict[int, dict] = {}
         for asset in raw_assets:
@@ -66,16 +75,16 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.assets = assets
 
         if do_slow:
+            # Space requests 2s apart to stay under rate limit
+            await asyncio.sleep(2)
             for bu_id in self.bu_ids:
-                try:
-                    bu = await self.api.get_bu(bu_id)
-                    if bu:
-                        self.bus[bu_id] = bu
-                except SteinApiError as err:
-                    _LOGGER.warning("Could not fetch BU %s: %s", bu_id, err)
-            try:
-                self.userinfo = await self.api.get_userinfo() or self.userinfo
-            except SteinApiError as err:
-                _LOGGER.warning("Could not fetch userinfo: %s", err)
+                result = await self._safe_get(self.api.get_bu(bu_id), f"BU {bu_id}")
+                if result:
+                    self.bus[bu_id] = result
+                await asyncio.sleep(2)
+
+            result = await self._safe_get(self.api.get_userinfo(), "userinfo")
+            if result:
+                self.userinfo = result
 
         return {"assets": self.assets, "bus": self.bus, "userinfo": self.userinfo}
