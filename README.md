@@ -31,13 +31,26 @@
 
 ## 📋 Voraussetzungen
 
+### Home Assistant
 - Home Assistant **2023.6.0** oder neuer
 - Ein **STEIN-Konto** mit technischem Benutzer und API-Token
 - IP-Adresse aus **Deutschland** (STEIN sperrt ausländische IPs)
 
+### HACS Frontend-Erweiterungen (für das Dashboard)
+
+Folgende Custom Cards müssen über HACS installiert sein:
+
+| Card | Beschreibung | HACS Link |
+|---|---|---|
+| **Mushroom Cards** | Moderne Karten für Status, Templates, Chips | `lovelace-mushroom` |
+| **browser_mod** | Popup-Funktionalität für Asset-Details | `browser_mod` |
+| **card-mod** | CSS-Anpassungen für Filter-Sichtbarkeit | `lovelace-card-mod` |
+
+Installation: HACS → Frontend → Suchen → Installieren → HA neu starten
+
 ---
 
-## 🚀 Installation
+## 🚀 Installation der Integration
 
 ### Via HACS (empfohlen)
 
@@ -69,7 +82,7 @@ Home Assistant neu starten.
 
 Das Abfrageintervall (Standard: 300 Sekunden) kann nach der Einrichtung unter **Einstellungen → Geräte & Dienste → STEIN → Konfigurieren** angepasst werden.
 
-> ⚠️ **Rate-Limit beachten:** STEIN erlaubt maximal 20 Anfragen/Minute. Das Standard-Intervall von 300 Sekunden ist bewusst konservativ gewählt. BU-Daten und Nutzerinfo werden nur alle ~50 Minuten abgerufen.
+> ⚠️ **Rate-Limit beachten:** STEIN erlaubt maximal 20 Anfragen/Minute. Das Standard-Intervall von 300 Sekunden ist bewusst konservativ. Bei einem 429-Fehler wartet die Integration automatisch 65 Sekunden und versucht es erneut. BU-Daten und Nutzerinfo werden nur alle ~50 Minuten abgerufen.
 
 ---
 
@@ -82,7 +95,7 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 | `sensor.<label>_status` | Sensor | Status + alle Felder als Attribute |
 | `select.<label>_status_setzen` | Select | Status umschalten |
 | `text.<label>_bezeichnung` | Text | Kurzbezeichnung bearbeiten |
-| `text.<label>_name` | Text | Vollname bearbeiten |
+| `text.<label>_name` | Text | Vollname / Kennzeichen bearbeiten |
 | `text.<label>_kommentar` | Text | Kommentar bearbeiten |
 | `text.<label>_kategorie` | Text | Kategorie bearbeiten |
 | `text.<label>_funkrufname` | Text | Funkrufname bearbeiten |
@@ -99,13 +112,51 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 
 ### 📌 Status-Werte
 
-| API-Wert | Anzeige | Symbol |
-|---|---|---|
-| `ready` | Einsatzbereit | ✅ |
-| `notready` | Nicht einsatzbereit | ❌ |
-| `semiready` | Bedingt einsatzbereit | ⚠️ |
-| `inuse` | Im Einsatz | 🚒 |
-| `maint` | In Wartung | 🔧 |
+| API-Wert | Anzeige |
+|---|---|
+| `ready` | Einsatzbereit |
+| `notready` | Nicht einsatzbereit |
+| `semiready` | Bedingt einsatzbereit |
+| `inuse` | Im Einsatz |
+| `maint` | In Wartung |
+
+---
+
+## 📊 Dashboard einrichten
+
+Das mitgelieferte `dashboard.yaml` bietet eine vollständige Übersicht mit Filter, Gruppen und Asset-Popups.
+
+### Voraussetzung: Filter-Helfer anlegen
+
+Füge folgenden Block in `/config/configuration.yaml` ein (Inhalt aus `input_select.yaml`):
+
+```yaml
+input_select:
+  stein_filter:
+    name: STEIN Filter
+    options:
+      - Alle
+      - Fahrzeuge
+      - Geraete
+      - Sonderfunktionen
+      - Einheiten
+      - Anhaenger
+      - Probleme
+      - Bereit
+      - Bedingt
+      - Nicht bereit
+      - Im Einsatz
+      - Wartung
+    initial: Alle
+    icon: mdi:filter
+```
+
+### Dashboard importieren
+
+1. **Einstellungen → Dashboards → + Dashboard hinzufügen**
+2. Name: `STEIN`, Icon: `mdi:fire-truck`
+3. Dashboard öffnen → **3-Punkte-Menü → Rohkonfiguration bearbeiten**
+4. Inhalt von `dashboard.yaml` einfügen → Speichern
 
 ---
 
@@ -136,10 +187,10 @@ data:
 
 ## 🤖 Beispiel-Automationen
 
-### Fahrzeug bei Alarm automatisch auf „Im Einsatz" setzen
+### Fahrzeug bei Alarm auf „Im Einsatz" setzen
 
 ```yaml
-alias: "LF1 – Alarm → Im Einsatz"
+alias: "GKW – Alarm → Im Einsatz"
 trigger:
   - platform: state
     entity_id: binary_sensor.alarmknopf
@@ -147,12 +198,12 @@ trigger:
 action:
   - service: stein.update_asset
     data:
-      asset_id: 42
+      asset_id: 340
       status: inuse
       comment: "Automatisch gesetzt – Alarm"
 ```
 
-### Benachrichtigung wenn Fahrzeug nicht einsatzbereit
+### Benachrichtigung bei Ausfall
 
 ```yaml
 alias: "STEIN – Warnung bei Ausfall"
@@ -175,10 +226,13 @@ action:
 ```bash
 curl -H "Authorization: Bearer TOKEN" https://stein.app/api/api/ext/userinfo
 ```
-IP muss aus Deutschland sein (STEIN sperrt ausländische IPs).
+IP muss aus Deutschland sein – STEIN sperrt ausländische IPs mit HTTP 404.
 
 **`429 Too Many Requests`:**
 Die Integration wartet automatisch 65 Sekunden und versucht es erneut. Falls es wiederholt auftritt: Abfrageintervall unter **Konfigurieren** erhöhen (mindestens 300 Sekunden empfohlen).
+
+**Popup öffnet sich nicht:**
+Sicherstellen dass `browser_mod` korrekt installiert und in HA registriert ist. Nach der Installation von `browser_mod` muss HA einmal neu gestartet werden.
 
 **Debug-Logging aktivieren** – in `configuration.yaml`:
 ```yaml

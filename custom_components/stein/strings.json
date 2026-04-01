@@ -6,14 +6,14 @@
         "description": "Gib deinen STEIN API Bearer-Token und die BU-IDs ein.",
         "data": {
           "api_token": "API Bearer Token",
-          "bu_ids": "BU-IDs (kommagetrennt, z.B. 1,2,3)",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "bu_ids": "BU-IDs (kommagetrennt, z.B. 1,2,3)"
         }
       }
     },
     "error": {
       "cannot_connect": "Verbindung zur STEIN API fehlgeschlagen",
       "invalid_auth": "Ungültiger API Token",
+      "invalid_bu_ids": "Ungültige BU-IDs – bitte Zahlen kommagetrennt eingeben",
       "unknown": "Unbekannter Fehler"
     },
     "abort": {
@@ -25,7 +25,7 @@
       "init": {
         "title": "STEIN Optionen",
         "data": {
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "scan_interval": "Abfrageintervall in Sekunden (min. 120)"
         }
       }
     }

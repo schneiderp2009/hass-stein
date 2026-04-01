@@ -6,8 +6,8 @@ views:
   max_columns: 1
   cards:
   - type: custom:mushroom-template-card
-    primary: THW OV Gmuend
-    secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default('''') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
+    primary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default(''STEIN'') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
+    secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}'
     icon: mdi:home-group
     icon_color: '{% if states(''sensor.stein_api_stein_verbindung'') not in [''unavailable'',''unknown'',''Unbekannt''] %}green{% else %}red{% endif %}'
   - type: horizontal-stack
@@ -171,18 +171,29 @@ views:
               icon: '{% set st=state_attr(''sensor.gkw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.gkw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.gkw_status_setzen
                 name: Status
               - entity: switch.gkw_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.gkw_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.gkw_bezeichnung
                 name: Bezeichnung
-              - entity: text.gkw_radioname
+              - entity: text.gkw_name
+                name: Name / Kennzeichen
+              - entity: text.gkw_funkrufname
                 name: Funkrufname
-              - entity: text.gkw_comment
+              - entity: text.gkw_kommentar
                 name: Kommentar
+              - entity: text.gkw_kategorie
+                name: Kategorie
+              - entity: text.gkw_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -204,19 +215,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.gkw_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.gkw_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.gkw_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.gkw_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.gkw_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.gkw_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.gkw_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.gkw_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.gkw_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.gkw_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.gkw_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.gkw_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -242,18 +268,29 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_werkstatt_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_werkstatt_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.lkw_werkstatt_status_setzen
                 name: Status
               - entity: switch.lkw_werkstatt_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.lkw_werkstatt_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.lkw_werkstatt_bezeichnung
                 name: Bezeichnung
-              - entity: text.lkw_werkstatt_radioname
+              - entity: text.lkw_werkstatt_name
+                name: Name / Kennzeichen
+              - entity: text.lkw_werkstatt_funkrufname
                 name: Funkrufname
-              - entity: text.lkw_werkstatt_comment
+              - entity: text.lkw_werkstatt_kommentar
                 name: Kommentar
+              - entity: text.lkw_werkstatt_kategorie
+                name: Kategorie
+              - entity: text.lkw_werkstatt_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -275,19 +312,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.lkw_werkstatt_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.lkw_werkstatt_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.lkw_werkstatt_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.lkw_werkstatt_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.lkw_werkstatt_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.lkw_werkstatt_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -313,18 +365,29 @@ views:
               icon: '{% set st=state_attr(''sensor.stapler_35_to_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.stapler_35_to_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.stapler_35_to_status_setzen
                 name: Status
               - entity: switch.stapler_35_to_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.stapler_35_to_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.stapler_35_to_bezeichnung
                 name: Bezeichnung
-              - entity: text.stapler_35_to_radioname
+              - entity: text.stapler_35_to_name
+                name: Name / Kennzeichen
+              - entity: text.stapler_35_to_funkrufname
                 name: Funkrufname
-              - entity: text.stapler_35_to_comment
+              - entity: text.stapler_35_to_kommentar
                 name: Kommentar
+              - entity: text.stapler_35_to_kategorie
+                name: Kategorie
+              - entity: text.stapler_35_to_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -346,19 +409,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.stapler_35_to_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.stapler_35_to_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.stapler_35_to_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.stapler_35_to_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.stapler_35_to_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.stapler_35_to_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -384,18 +462,29 @@ views:
               icon: '{% set st=state_attr(''sensor.mtw_tz_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mtw_tz_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.mtw_tz_status_setzen
                 name: Status
               - entity: switch.mtw_tz_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.mtw_tz_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.mtw_tz_bezeichnung
                 name: Bezeichnung
-              - entity: text.mtw_tz_radioname
+              - entity: text.mtw_tz_name
+                name: Name / Kennzeichen
+              - entity: text.mtw_tz_funkrufname
                 name: Funkrufname
-              - entity: text.mtw_tz_comment
+              - entity: text.mtw_tz_kommentar
                 name: Kommentar
+              - entity: text.mtw_tz_kategorie
+                name: Kategorie
+              - entity: text.mtw_tz_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -417,19 +506,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.mtw_tz_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.mtw_tz_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.mtw_tz_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.mtw_tz_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.mtw_tz_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.mtw_tz_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.mtw_tz_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.mtw_tz_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.mtw_tz_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.mtw_tz_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.mtw_tz_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.mtw_tz_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -455,18 +559,29 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.lkw_kipper_lkr_status_setzen
                 name: Status
               - entity: switch.lkw_kipper_lkr_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.lkw_kipper_lkr_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.lkw_kipper_lkr_bezeichnung
                 name: Bezeichnung
-              - entity: text.lkw_kipper_lkr_radioname
+              - entity: text.lkw_kipper_lkr_name
+                name: Name / Kennzeichen
+              - entity: text.lkw_kipper_lkr_funkrufname
                 name: Funkrufname
-              - entity: text.lkw_kipper_lkr_comment
+              - entity: text.lkw_kipper_lkr_kommentar
                 name: Kommentar
+              - entity: text.lkw_kipper_lkr_kategorie
+                name: Kategorie
+              - entity: text.lkw_kipper_lkr_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -488,19 +603,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.lkw_kipper_lkr_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.lkw_kipper_lkr_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.lkw_kipper_lkr_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.lkw_kipper_lkr_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.lkw_kipper_lkr_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.lkw_kipper_lkr_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -526,18 +656,29 @@ views:
               icon: '{% set st=state_attr(''sensor.nea_200kva_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.nea_200kva_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.nea_200kva_status_setzen
                 name: Status
               - entity: switch.nea_200kva_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.nea_200kva_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.nea_200kva_bezeichnung
                 name: Bezeichnung
-              - entity: text.nea_200kva_radioname
+              - entity: text.nea_200kva_name
+                name: Name / Kennzeichen
+              - entity: text.nea_200kva_funkrufname
                 name: Funkrufname
-              - entity: text.nea_200kva_comment
+              - entity: text.nea_200kva_kommentar
                 name: Kommentar
+              - entity: text.nea_200kva_kategorie
+                name: Kategorie
+              - entity: text.nea_200kva_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -559,19 +700,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.nea_200kva_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.nea_200kva_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.nea_200kva_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.nea_200kva_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.nea_200kva_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.nea_200kva_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.nea_200kva_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.nea_200kva_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.nea_200kva_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.nea_200kva_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.nea_200kva_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.nea_200kva_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -597,18 +753,29 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_lbw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_lbw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.lkw_lbw_status_setzen
                 name: Status
               - entity: switch.lkw_lbw_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.lkw_lbw_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.lkw_lbw_bezeichnung
                 name: Bezeichnung
-              - entity: text.lkw_lbw_radioname
+              - entity: text.lkw_lbw_name
+                name: Name / Kennzeichen
+              - entity: text.lkw_lbw_funkrufname
                 name: Funkrufname
-              - entity: text.lkw_lbw_comment
+              - entity: text.lkw_lbw_kommentar
                 name: Kommentar
+              - entity: text.lkw_lbw_kategorie
+                name: Kategorie
+              - entity: text.lkw_lbw_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -630,19 +797,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.lkw_lbw_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.lkw_lbw_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.lkw_lbw_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.lkw_lbw_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.lkw_lbw_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.lkw_lbw_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -668,18 +850,29 @@ views:
               icon: '{% set st=state_attr(''sensor.mtw_ov_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mtw_ov_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.mtw_ov_status_setzen
                 name: Status
               - entity: switch.mtw_ov_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.mtw_ov_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.mtw_ov_bezeichnung
                 name: Bezeichnung
-              - entity: text.mtw_ov_radioname
+              - entity: text.mtw_ov_name
+                name: Name / Kennzeichen
+              - entity: text.mtw_ov_funkrufname
                 name: Funkrufname
-              - entity: text.mtw_ov_comment
+              - entity: text.mtw_ov_kommentar
                 name: Kommentar
+              - entity: text.mtw_ov_kategorie
+                name: Kategorie
+              - entity: text.mtw_ov_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -701,19 +894,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.mtw_ov_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.mtw_ov_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.mtw_ov_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.mtw_ov_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.mtw_ov_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.mtw_ov_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.mtw_ov_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.mtw_ov_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.mtw_ov_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.mtw_ov_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.mtw_ov_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.mtw_ov_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -739,18 +947,29 @@ views:
               icon: '{% set st=state_attr(''sensor.mzkw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mzkw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.mzkw_status_setzen
                 name: Status
               - entity: switch.mzkw_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.mzkw_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.mzkw_bezeichnung
                 name: Bezeichnung
-              - entity: text.mzkw_radioname
+              - entity: text.mzkw_name
+                name: Name / Kennzeichen
+              - entity: text.mzkw_funkrufname
                 name: Funkrufname
-              - entity: text.mzkw_comment
+              - entity: text.mzkw_kommentar
                 name: Kommentar
+              - entity: text.mzkw_kategorie
+                name: Kategorie
+              - entity: text.mzkw_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -772,19 +991,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.mzkw_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.mzkw_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.mzkw_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.mzkw_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.mzkw_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.mzkw_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Fahrzeuge''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.mzkw_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.mzkw_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.mzkw_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.mzkw_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.mzkw_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.mzkw_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-title-card
@@ -814,18 +1048,29 @@ views:
               icon: '{% set st=state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.technischer_berater_arbeitssicherheit_status_setzen
                 name: Status
               - entity: switch.technischer_berater_arbeitssicherheit_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.technischer_berater_arbeitssicherheit_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.technischer_berater_arbeitssicherheit_bezeichnung
                 name: Bezeichnung
-              - entity: text.technischer_berater_arbeitssicherheit_radioname
+              - entity: text.technischer_berater_arbeitssicherheit_name
+                name: Name / Kennzeichen
+              - entity: text.technischer_berater_arbeitssicherheit_funkrufname
                 name: Funkrufname
-              - entity: text.technischer_berater_arbeitssicherheit_comment
+              - entity: text.technischer_berater_arbeitssicherheit_kommentar
                 name: Kommentar
+              - entity: text.technischer_berater_arbeitssicherheit_kategorie
+                name: Kategorie
+              - entity: text.technischer_berater_arbeitssicherheit_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -847,19 +1092,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.technischer_berater_arbeitssicherheit_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.technischer_berater_arbeitssicherheit_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.technischer_berater_arbeitssicherheit_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.technischer_berater_arbeitssicherheit_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.technischer_berater_arbeitssicherheit_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Sonderfunktionen''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -885,18 +1145,29 @@ views:
               icon: '{% set st=state_attr(''sensor.fachberater_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachberater_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.fachberater_status_setzen
                 name: Status
               - entity: switch.fachberater_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.fachberater_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.fachberater_bezeichnung
                 name: Bezeichnung
-              - entity: text.fachberater_radioname
+              - entity: text.fachberater_name
+                name: Name / Kennzeichen
+              - entity: text.fachberater_funkrufname
                 name: Funkrufname
-              - entity: text.fachberater_comment
+              - entity: text.fachberater_kommentar
                 name: Kommentar
+              - entity: text.fachberater_kategorie
+                name: Kategorie
+              - entity: text.fachberater_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -918,19 +1189,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.fachberater_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.fachberater_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.fachberater_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.fachberater_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.fachberater_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.fachberater_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Sonderfunktionen''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.fachberater_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.fachberater_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.fachberater_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.fachberater_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.fachberater_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.fachberater_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-title-card
@@ -960,18 +1246,29 @@ views:
               icon: '{% set st=state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.fachgruppe_elektroversorgung_status_setzen
                 name: Status
               - entity: switch.fachgruppe_elektroversorgung_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.fachgruppe_elektroversorgung_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.fachgruppe_elektroversorgung_bezeichnung
                 name: Bezeichnung
-              - entity: text.fachgruppe_elektroversorgung_radioname
+              - entity: text.fachgruppe_elektroversorgung_name
+                name: Name / Kennzeichen
+              - entity: text.fachgruppe_elektroversorgung_funkrufname
                 name: Funkrufname
-              - entity: text.fachgruppe_elektroversorgung_comment
+              - entity: text.fachgruppe_elektroversorgung_kommentar
                 name: Kommentar
+              - entity: text.fachgruppe_elektroversorgung_kategorie
+                name: Kategorie
+              - entity: text.fachgruppe_elektroversorgung_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -993,19 +1290,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.fachgruppe_elektroversorgung_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.fachgruppe_elektroversorgung_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.fachgruppe_elektroversorgung_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.fachgruppe_elektroversorgung_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.fachgruppe_elektroversorgung_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.fachgruppe_elektroversorgung_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1031,18 +1343,29 @@ views:
               icon: '{% set st=state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.fachgruppe_notversorgung_und_notinstandsetzung_status_setzen
                 name: Status
               - entity: switch.fachgruppe_notversorgung_und_notinstandsetzung_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_bezeichnung
                 name: Bezeichnung
-              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_radioname
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_name
+                name: Name / Kennzeichen
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_funkrufname
                 name: Funkrufname
-              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_comment
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_kommentar
                 name: Kommentar
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_kategorie
+                name: Kategorie
+              - entity: text.fachgruppe_notversorgung_und_notinstandsetzung_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1064,19 +1387,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.fachgruppe_notversorgung_und_notinstandsetzung_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1102,18 +1440,29 @@ views:
               icon: '{% set st=state_attr(''sensor.bergungsgruppe_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.bergungsgruppe_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.bergungsgruppe_status_setzen
                 name: Status
               - entity: switch.bergungsgruppe_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.bergungsgruppe_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.bergungsgruppe_bezeichnung
                 name: Bezeichnung
-              - entity: text.bergungsgruppe_radioname
+              - entity: text.bergungsgruppe_name
+                name: Name / Kennzeichen
+              - entity: text.bergungsgruppe_funkrufname
                 name: Funkrufname
-              - entity: text.bergungsgruppe_comment
+              - entity: text.bergungsgruppe_kommentar
                 name: Kommentar
+              - entity: text.bergungsgruppe_kategorie
+                name: Kategorie
+              - entity: text.bergungsgruppe_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1135,19 +1484,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.bergungsgruppe_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.bergungsgruppe_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.bergungsgruppe_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.bergungsgruppe_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.bergungsgruppe_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.bergungsgruppe_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1173,18 +1537,29 @@ views:
               icon: '{% set st=state_attr(''sensor.zugtrupp_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.zugtrupp_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.zugtrupp_status_setzen
                 name: Status
               - entity: switch.zugtrupp_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.zugtrupp_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.zugtrupp_bezeichnung
                 name: Bezeichnung
-              - entity: text.zugtrupp_radioname
+              - entity: text.zugtrupp_name
+                name: Name / Kennzeichen
+              - entity: text.zugtrupp_funkrufname
                 name: Funkrufname
-              - entity: text.zugtrupp_comment
+              - entity: text.zugtrupp_kommentar
                 name: Kommentar
+              - entity: text.zugtrupp_kategorie
+                name: Kategorie
+              - entity: text.zugtrupp_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1206,19 +1581,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.zugtrupp_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.zugtrupp_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.zugtrupp_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.zugtrupp_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.zugtrupp_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.zugtrupp_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.zugtrupp_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.zugtrupp_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.zugtrupp_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.zugtrupp_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.zugtrupp_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.zugtrupp_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1244,18 +1634,29 @@ views:
               icon: '{% set st=state_attr(''sensor.luk_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.luk_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.luk_status_setzen
                 name: Status
               - entity: switch.luk_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.luk_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.luk_bezeichnung
                 name: Bezeichnung
-              - entity: text.luk_radioname
+              - entity: text.luk_name
+                name: Name / Kennzeichen
+              - entity: text.luk_funkrufname
                 name: Funkrufname
-              - entity: text.luk_comment
+              - entity: text.luk_kommentar
                 name: Kommentar
+              - entity: text.luk_kategorie
+                name: Kategorie
+              - entity: text.luk_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1277,19 +1678,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.luk_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.luk_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.luk_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.luk_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.luk_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.luk_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.luk_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.luk_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.luk_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.luk_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.luk_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.luk_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-title-card
@@ -1319,18 +1735,29 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.anh_status_setzen
                 name: Status
               - entity: switch.anh_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.anh_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.anh_bezeichnung
                 name: Bezeichnung
-              - entity: text.anh_radioname
+              - entity: text.anh_name
+                name: Name / Kennzeichen
+              - entity: text.anh_funkrufname
                 name: Funkrufname
-              - entity: text.anh_comment
+              - entity: text.anh_kommentar
                 name: Kommentar
+              - entity: text.anh_kategorie
+                name: Kategorie
+              - entity: text.anh_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1352,19 +1779,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.anh_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.anh_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.anh_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.anh_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.anh_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.anh_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1390,18 +1832,29 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.anh_tieflader_13t_status_setzen
                 name: Status
               - entity: switch.anh_tieflader_13t_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.anh_tieflader_13t_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.anh_tieflader_13t_bezeichnung
                 name: Bezeichnung
-              - entity: text.anh_tieflader_13t_radioname
+              - entity: text.anh_tieflader_13t_name
+                name: Name / Kennzeichen
+              - entity: text.anh_tieflader_13t_funkrufname
                 name: Funkrufname
-              - entity: text.anh_tieflader_13t_comment
+              - entity: text.anh_tieflader_13t_kommentar
                 name: Kommentar
+              - entity: text.anh_tieflader_13t_kategorie
+                name: Kategorie
+              - entity: text.anh_tieflader_13t_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1423,19 +1876,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.anh_tieflader_13t_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.anh_tieflader_13t_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.anh_tieflader_13t_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.anh_tieflader_13t_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.anh_tieflader_13t_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.anh_tieflader_13t_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1461,18 +1929,29 @@ views:
               icon: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.anhaenger_status_setzen
                 name: Status
               - entity: switch.anhaenger_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.anhaenger_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.anhaenger_bezeichnung
                 name: Bezeichnung
-              - entity: text.anhaenger_radioname
+              - entity: text.anhaenger_name
+                name: Name / Kennzeichen
+              - entity: text.anhaenger_funkrufname
                 name: Funkrufname
-              - entity: text.anhaenger_comment
+              - entity: text.anhaenger_kommentar
                 name: Kommentar
+              - entity: text.anhaenger_kategorie
+                name: Kategorie
+              - entity: text.anhaenger_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1494,19 +1973,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.anhaenger_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.anhaenger_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.anhaenger_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.anhaenger_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.anhaenger_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.anhaenger_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anhaenger_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1532,18 +2026,29 @@ views:
               icon: '{% set st=state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.nea_50_kva_lima_status_setzen
                 name: Status
               - entity: switch.nea_50_kva_lima_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.nea_50_kva_lima_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.nea_50_kva_lima_bezeichnung
                 name: Bezeichnung
-              - entity: text.nea_50_kva_lima_radioname
+              - entity: text.nea_50_kva_lima_name
+                name: Name / Kennzeichen
+              - entity: text.nea_50_kva_lima_funkrufname
                 name: Funkrufname
-              - entity: text.nea_50_kva_lima_comment
+              - entity: text.nea_50_kva_lima_kommentar
                 name: Kommentar
+              - entity: text.nea_50_kva_lima_kategorie
+                name: Kategorie
+              - entity: text.nea_50_kva_lima_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1565,19 +2070,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.nea_50_kva_lima_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.nea_50_kva_lima_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.nea_50_kva_lima_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.nea_50_kva_lima_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.nea_50_kva_lima_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.nea_50_kva_lima_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-template-card
@@ -1603,18 +2123,29 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_pf_12t_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_pf_12t_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
+              title: Status ändern
               show_header_toggle: false
               entities:
               - entity: select.anh_pf_12t_status_setzen
                 name: Status
               - entity: switch.anh_pf_12t_einsatzreservierung
                 name: Einsatzreservierung
-              - entity: text.anh_pf_12t_label
+            - type: entities
+              title: Felder bearbeiten
+              show_header_toggle: false
+              entities:
+              - entity: text.anh_pf_12t_bezeichnung
                 name: Bezeichnung
-              - entity: text.anh_pf_12t_radioname
+              - entity: text.anh_pf_12t_name
+                name: Name / Kennzeichen
+              - entity: text.anh_pf_12t_funkrufname
                 name: Funkrufname
-              - entity: text.anh_pf_12t_comment
+              - entity: text.anh_pf_12t_kommentar
                 name: Kommentar
+              - entity: text.anh_pf_12t_kategorie
+                name: Kategorie
+              - entity: text.anh_pf_12t_issi
+                name: ISSI
             - type: entities
               title: Details
               show_header_toggle: false
@@ -1636,19 +2167,34 @@ views:
                 icon: mdi:signal
               - type: attribute
                 entity: sensor.anh_pf_12t_status
+                attribute: hu_valid_until
+                name: HU gültig bis
+                icon: mdi:calendar-check
+              - type: attribute
+                entity: sensor.anh_pf_12t_status
                 attribute: comment
                 name: Kommentar
                 icon: mdi:comment-text
               - type: attribute
                 entity: sensor.anh_pf_12t_status
-                attribute: hu_valid_until
-                name: HU gueltig bis
-                icon: mdi:calendar-check
+                attribute: last_modified_by
+                name: Geändert von
+                icon: mdi:account-edit
               - type: attribute
                 entity: sensor.anh_pf_12t_status
-                attribute: last_modified_by
-                name: Geaendert von
-                icon: mdi:account-edit
+                attribute: last_modified
+                name: Geändert am
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.anh_pf_12t_status
+                attribute: group_id
+                name: Gruppe
+                icon: mdi:folder
+              - type: attribute
+                entity: sensor.anh_pf_12t_status
+                attribute: id
+                name: Asset-ID
+                icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''maint'') else ''none'' }}; }'
   - type: custom:mushroom-title-card
@@ -1673,6 +2219,16 @@ views:
       attribute: scope_role_permission
       name: Berechtigung
       icon: mdi:key
+    - type: attribute
+      entity: sensor.stein_api_stein_verbindung
+      attribute: scope_role_entity
+      name: Entität
+      icon: mdi:identifier
+    - type: attribute
+      entity: sensor.stein_api_stein_verbindung
+      attribute: scope_role_entity_id
+      name: Entitäts-ID
+      icon: mdi:numeric
     - type: attribute
       entity: sensor.stein_api_stein_verbindung
       attribute: tech_user
