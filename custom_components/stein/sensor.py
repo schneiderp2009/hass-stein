@@ -56,8 +56,6 @@ async def async_setup_entry(
 
     for bu_id in coordinator.bus:
         entities.append(SteinBuSensor(coordinator, bu_id))
-        for status_key in ("ready", "notready", "semiready", "inuse", "maint"):
-            entities.append(SteinBuStatusCountSensor(coordinator, bu_id, status_key))
 
     async_add_entities(entities, True)
 
@@ -73,8 +71,6 @@ async def async_setup_entry(
             new_entities.append(SteinAssetReadinessSensor(coordinator, aid))
         for bid in set(coordinator.bus.keys()) - known_bu_ids:
             new_entities.append(SteinBuSensor(coordinator, bid))
-            for sk in ("ready", "notready", "semiready", "inuse", "maint"):
-                new_entities.append(SteinBuStatusCountSensor(coordinator, bid, sk))
         if new_entities:
             async_add_entities(new_entities)
         known_asset_ids.update(set(coordinator.assets.keys()) - known_asset_ids)
@@ -94,7 +90,7 @@ class SteinAssetSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
         label = asset.get("label") or f"asset_{asset_id}"
         slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_status"
-        self.entity_id = f"sensor.stein_{slug}_status"
+        self.entity_id = f"sensor.{slug}_status"
 
     @property
     def _asset(self) -> dict:
@@ -162,7 +158,7 @@ class SteinAssetReadinessSensor(CoordinatorEntity[SteinCoordinator], SensorEntit
         label = asset.get("label") or f"asset_{asset_id}"
         slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_readiness"
-        self.entity_id = f"sensor.stein_{slug}_einsatzbereitschaft"
+        self.entity_id = f"sensor.{slug}_einsatzbereitschaft"
 
     @property
     def _asset(self) -> dict:
@@ -196,15 +192,16 @@ class SteinAssetReadinessSensor(CoordinatorEntity[SteinCoordinator], SensorEntit
 
 
 class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
+    """BU sensor – exposes all BU fields including stats and contact info."""
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_icon = "mdi:garage"
+    _attr_icon = "mdi:home-group"
 
     def __init__(self, coordinator: SteinCoordinator, bu_id: int) -> None:
         super().__init__(coordinator)
         self._bu_id = bu_id
         self._attr_unique_id = f"stein_bu_{bu_id}_total"
-        self.entity_id = f"sensor.stein_bu_{bu_id}_fahrzeuge_gesamt"
+        self.entity_id = f"sensor.stein_bu_{bu_id}"
 
     @property
     def _bu(self) -> dict:
@@ -212,7 +209,7 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
 
     @property
     def name(self) -> str:
-        return "Fahrzeuge gesamt"
+        return "Ortsverband"
 
     @property
     def state(self) -> int:
@@ -220,7 +217,7 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
 
     @property
     def unit_of_measurement(self) -> str:
-        return "Fahrzeuge"
+        return "Assets"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -233,66 +230,25 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
         total = self.state
         ready = sum(1 for a in self.coordinator.assets.values()
                     if a.get("buId") == self._bu_id and a.get("status") == "ready")
+        stats = bu.get("stats", {})
         return {
-            "bu_id":    bu.get("id"),
-            "bu_name":  bu.get("name"),
-            "bu_code":  bu.get("code"),
-            "region_id": bu.get("regionId"),
-            "comment":  bu.get("comment"),
-            "author":   bu.get("author"),
+            "id":           bu.get("id"),
+            "name":         bu.get("name"),
+            "code":         bu.get("code"),
+            "region_id":    bu.get("regionId"),
+            "comment":      bu.get("comment"),
+            "author":       bu.get("author"),
             "last_modified": bu.get("lastModified"),
             "email_status_change_enabled": bu.get("emailStatusChangeEnabled"),
             "fs_sort_order": bu.get("fsSortOrder"),
-            "stats_api": bu.get("stats", {}),
-            "asset_counts": counts,
+            "stats_ready":    stats.get("ready", 0),
+            "stats_notready": stats.get("notready", 0),
+            "stats_semiready": stats.get("semiready", 0),
+            "stats_inuse":    stats.get("inuse", 0),
+            "stats_maint":    stats.get("maint", 0),
+            "asset_counts":  counts,
             "readiness_pct": round(ready / total * 100) if total else 0,
         }
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        return _bu_device(self._bu)
-
-
-class SteinBuStatusCountSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    _attr_has_entity_name = True
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator: SteinCoordinator, bu_id: int, status_key: str) -> None:
-        super().__init__(coordinator)
-        self._bu_id = bu_id
-        self._status_key = status_key
-        self._attr_unique_id = f"stein_bu_{bu_id}_count_{status_key}"
-        self.entity_id = f"sensor.stein_bu_{bu_id}_anzahl_{status_key}"
-
-    @property
-    def _bu(self) -> dict:
-        return self.coordinator.bus.get(self._bu_id, {})
-
-    @property
-    def name(self) -> str:
-        return f"Anzahl {STATUS_LABELS.get(self._status_key, self._status_key)}"
-
-    @property
-    def state(self) -> int:
-        return sum(
-            1 for a in self.coordinator.assets.values()
-            if a.get("buId") == self._bu_id and a.get("status") == self._status_key
-        )
-
-    @property
-    def unit_of_measurement(self) -> str:
-        return "Fahrzeuge"
-
-    @property
-    def icon(self) -> str:
-        return {
-            "ready":     "mdi:check-circle",
-            "notready":  "mdi:close-circle",
-            "semiready": "mdi:alert-circle",
-            "inuse":     "mdi:fire-truck",
-            "maint":     "mdi:wrench",
-        }.get(self._status_key, "mdi:help-circle")
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -303,15 +259,15 @@ class SteinUserinfoSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:account-circle"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_unique_id = "stein_userinfo"
 
     def __init__(self, coordinator: SteinCoordinator) -> None:
         super().__init__(coordinator)
-        self.entity_id = "sensor.stein_verbindung"
+        self._attr_unique_id = "stein_userinfo"
+        self.entity_id = "sensor.stein_api_stein_verbindung"
 
     @property
     def name(self) -> str:
-        return "API Verbindung"
+        return "Verbindung"
 
     @property
     def state(self) -> str:
@@ -335,10 +291,10 @@ class SteinUserinfoSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
+        # Fix: removed deprecated entry_type="service"
         return DeviceInfo(
             identifiers={(DOMAIN, "stein_connection")},
             name="STEIN API",
             manufacturer="STEIN",
             model="API Verbindung",
-            entry_type="service",
         )

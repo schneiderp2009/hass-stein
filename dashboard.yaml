@@ -6,10 +6,100 @@ views:
   max_columns: 1
   cards:
   - type: custom:mushroom-template-card
-    primary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default(''STEIN'') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
-    secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}'
+    primary: '{{ state_attr(''sensor.stein_bu_19'',''name'') | default(''THW OV'') }} ({{ state_attr(''sensor.stein_bu_19'',''code'') | default('''') }})'
+    secondary: '{{ state_attr(''sensor.stein_bu_19'',''readiness_pct'') | default(0) }}% einsatzbereit · {{ state_attr(''sensor.stein_bu_19'',''stats_ready'') | default(0) }} bereit · {{ state_attr(''sensor.stein_bu_19'',''stats_notready'') | default(0) }} nicht bereit'
     icon: mdi:home-group
-    icon_color: '{% if states(''sensor.stein_api_stein_verbindung'') not in [''unavailable'',''unknown'',''Unbekannt''] %}green{% else %}red{% endif %}'
+    icon_color: '{% set pct = state_attr(''sensor.stein_bu_19'',''readiness_pct'') | default(0) | int %}{% if pct >= 75 %}green{% elif pct >= 50 %}orange{% else %}red{% endif %}'
+    tap_action:
+      action: fire-dom-event
+      browser_mod:
+        service: browser_mod.popup
+        data:
+          title: Ortsverband
+          content:
+            type: entities
+            show_header_toggle: false
+            entities:
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: name
+              name: Name
+              icon: mdi:home-group
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: code
+              name: Kürzel
+              icon: mdi:identifier
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: region_id
+              name: Region
+              icon: mdi:map-marker
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: comment
+              name: Kommentar
+              icon: mdi:comment-text
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: author
+              name: Erstellt von
+              icon: mdi:account
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: last_modified
+              name: Letzte Änderung
+              icon: mdi:clock-edit
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: stats_ready
+              name: Einsatzbereit
+              icon: mdi:check-circle
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: stats_notready
+              name: Nicht einsatzbereit
+              icon: mdi:close-circle
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: stats_semiready
+              name: Bedingt bereit
+              icon: mdi:alert-circle
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: stats_inuse
+              name: Im Einsatz
+              icon: mdi:fire-truck
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: stats_maint
+              name: In Wartung
+              icon: mdi:wrench
+            - type: attribute
+              entity: sensor.stein_bu_19
+              attribute: readiness_pct
+              name: Einsatzbereitschaft %
+              icon: mdi:chart-bar
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: name
+              name: API Nutzer
+              icon: mdi:account-circle
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: email
+              name: E-Mail
+              icon: mdi:email
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope
+              name: Scope
+              icon: mdi:shield-account
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope_role_permission
+              name: Berechtigung
+              icon: mdi:key
   - type: horizontal-stack
     cards:
     - type: custom:mushroom-template-card
@@ -171,7 +261,7 @@ views:
               icon: '{% set st=state_attr(''sensor.gkw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.gkw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.gkw_status_setzen
@@ -268,7 +358,7 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_werkstatt_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_werkstatt_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.lkw_werkstatt_status_setzen
@@ -365,7 +455,7 @@ views:
               icon: '{% set st=state_attr(''sensor.stapler_35_to_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.stapler_35_to_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.stapler_35_to_status_setzen
@@ -462,7 +552,7 @@ views:
               icon: '{% set st=state_attr(''sensor.mtw_tz_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mtw_tz_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.mtw_tz_status_setzen
@@ -559,7 +649,7 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.lkw_kipper_lkr_status_setzen
@@ -656,7 +746,7 @@ views:
               icon: '{% set st=state_attr(''sensor.nea_200kva_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.nea_200kva_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.nea_200kva_status_setzen
@@ -753,7 +843,7 @@ views:
               icon: '{% set st=state_attr(''sensor.lkw_lbw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.lkw_lbw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.lkw_lbw_status_setzen
@@ -850,7 +940,7 @@ views:
               icon: '{% set st=state_attr(''sensor.mtw_ov_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mtw_ov_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.mtw_ov_status_setzen
@@ -947,7 +1037,7 @@ views:
               icon: '{% set st=state_attr(''sensor.mzkw_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.mzkw_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.mzkw_status_setzen
@@ -1048,7 +1138,7 @@ views:
               icon: '{% set st=state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.technischer_berater_arbeitssicherheit_status_setzen
@@ -1145,7 +1235,7 @@ views:
               icon: '{% set st=state_attr(''sensor.fachberater_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachberater_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.fachberater_status_setzen
@@ -1246,7 +1336,7 @@ views:
               icon: '{% set st=state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.fachgruppe_elektroversorgung_status_setzen
@@ -1343,7 +1433,7 @@ views:
               icon: '{% set st=state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.fachgruppe_notversorgung_und_notinstandsetzung_status_setzen
@@ -1440,7 +1530,7 @@ views:
               icon: '{% set st=state_attr(''sensor.bergungsgruppe_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.bergungsgruppe_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.bergungsgruppe_status_setzen
@@ -1537,7 +1627,7 @@ views:
               icon: '{% set st=state_attr(''sensor.zugtrupp_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.zugtrupp_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.zugtrupp_status_setzen
@@ -1634,7 +1724,7 @@ views:
               icon: '{% set st=state_attr(''sensor.luk_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.luk_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.luk_status_setzen
@@ -1735,7 +1825,7 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.anh_status_setzen
@@ -1832,7 +1922,7 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.anh_tieflader_13t_status_setzen
@@ -1929,7 +2019,7 @@ views:
               icon: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.anhaenger_status_setzen
@@ -2026,7 +2116,7 @@ views:
               icon: '{% set st=state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.nea_50_kva_lima_status_setzen
@@ -2123,7 +2213,7 @@ views:
               icon: '{% set st=state_attr(''sensor.anh_pf_12t_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
               icon_color: '{% set st=state_attr(''sensor.anh_pf_12t_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
             - type: entities
-              title: Status ändern
+              title: Status
               show_header_toggle: false
               entities:
               - entity: select.anh_pf_12t_status_setzen
@@ -2197,45 +2287,3 @@ views:
                 icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''maint'') else ''none'' }}; }'
-  - type: custom:mushroom-title-card
-    title: API und Ortsverband
-  - type: entities
-    show_header_toggle: false
-    entities:
-    - entity: sensor.stein_api_stein_verbindung
-      name: API Nutzer
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: email
-      name: E-Mail
-      icon: mdi:email
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: scope
-      name: Zugriffsbereich
-      icon: mdi:shield-account
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: scope_role_permission
-      name: Berechtigung
-      icon: mdi:key
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: scope_role_entity
-      name: Entität
-      icon: mdi:identifier
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: scope_role_entity_id
-      name: Entitäts-ID
-      icon: mdi:numeric
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: tech_user
-      name: Technischer Nutzer
-      icon: mdi:robot
-    - type: attribute
-      entity: sensor.stein_api_stein_verbindung
-      attribute: active
-      name: Aktiv
-      icon: mdi:check-circle

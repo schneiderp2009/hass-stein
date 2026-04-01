@@ -90,9 +90,6 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class SteinOptionsFlow(config_entries.OptionsFlow):
     """Options flow – only scan interval."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
