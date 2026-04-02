@@ -40,7 +40,7 @@ views:
                       - type: attribute
                         entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
                         attribute: code
-                        name: Kürzel
+                        name: Kuerzel
                         icon: mdi:identifier
                       - type: attribute
                         entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
@@ -60,13 +60,13 @@ views:
                       - type: attribute
                         entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
                         attribute: last_modified
-                        name: Letzte Änderung
+                        name: Letzte Aenderung
                         icon: mdi:clock-edit
-                      - type: attribute
-                        entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
-                        attribute: comment
-                        name: Kommentar
-                        icon: mdi:comment-text
+                  - type: markdown
+                    content: >
+                      **Kommentar / Kontakt**
+
+                      {{ state_attr('sensor.schwabisch_gmund_fahrzeuge_gesamt','comment') | default('') | replace(' - ','\n- ') }}
                   - type: entities
                     title: Einsatzstatistik
                     show_header_toggle: false
@@ -122,13 +122,8 @@ views:
                         attribute: scope_role_permission
                         name: Berechtigung
                         icon: mdi:key
-                      - type: attribute
-                        entity: sensor.stein_api_stein_verbindung
-                        attribute: active
-                        name: Aktiv
-                        icon: mdi:check-circle
 
-      # ── Statuskacheln (dynamisch) ────────────────────────────────────────
+      # ── Statuskacheln ────────────────────────────────────────────────────
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
@@ -207,14 +202,13 @@ views:
                 entity_id: input_select.stein_filter
                 option: Wartung
 
-      # ── Filter-Chips ────────────────────────────────────────────────────
+      # ── Filter-Chips ─────────────────────────────────────────────────────
       - type: custom:mushroom-chips-card
         chips:
           - type: template
             content: Alle
             icon: mdi:format-list-bulleted
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Alle' %}blue{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Alle' %}blue{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
@@ -222,65 +216,59 @@ views:
                 entity_id: input_select.stein_filter
                 option: Alle
           - type: template
-            content: Gruppe 1
+            content: Fahrzeuge
             icon: mdi:fire-truck
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Gruppe 1' %}blue{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Gruppe 1' %}blue{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
               service_data:
                 entity_id: input_select.stein_filter
-                option: Gruppe 1
+                option: "Gruppe 1"
           - type: template
-            content: Gruppe 2
+            content: Geraete
             icon: mdi:tools
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Gruppe 2' %}brown{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Gruppe 2' %}brown{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
               service_data:
                 entity_id: input_select.stein_filter
-                option: Gruppe 2
+                option: "Gruppe 2"
           - type: template
-            content: Gruppe 3
+            content: Sonderfunkt.
             icon: mdi:star
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Gruppe 3' %}teal{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Gruppe 3' %}teal{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
               service_data:
                 entity_id: input_select.stein_filter
-                option: Gruppe 3
+                option: "Gruppe 3"
           - type: template
-            content: Gruppe 4
+            content: Einheiten
             icon: mdi:account-group
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Gruppe 4' %}purple{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Gruppe 4' %}purple{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
               service_data:
                 entity_id: input_select.stein_filter
-                option: Gruppe 4
+                option: "Gruppe 4"
           - type: template
-            content: Gruppe 5
+            content: Anhaenger
             icon: mdi:truck-trailer
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Gruppe 5' %}orange{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Gruppe 5' %}orange{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
               service_data:
                 entity_id: input_select.stein_filter
-                option: Gruppe 5
+                option: "Gruppe 5"
           - type: template
             content: Probleme
             icon: mdi:alert
-            icon_color: >
-              {% if states('input_select.stein_filter') == 'Probleme' %}red{% else %}grey{% endif %}
+            icon_color: "{% if states('input_select.stein_filter') == 'Probleme' %}red{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: input_select.select_option
@@ -288,18 +276,11 @@ views:
                 entity_id: input_select.stein_filter
                 option: Probleme
 
-      # ── Gruppe 1 ─────────────────────────────────────────────────────────
+      # ── Gruppe 1: Fahrzeuge ───────────────────────────────────────────────
       - type: custom:mushroom-title-card
-        title: >
-          {% set f = states('input_select.stein_filter') %}
-          {% if f in ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] %}
-          Fahrzeuge (Gruppe 1){% endif %}
+        title: Fahrzeuge
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
       - type: custom:auto-entities
         card:
@@ -312,58 +293,50 @@ views:
             - attributes:
                 bu_id: 19
                 group_id: 1
+              card_mod:
+                style: |
+                  :host {
+                    --icon-color: {% set s = state_attr(config.entity, 'status_raw') %}
+                      {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %};
+                  }
         card:
-          type: vertical-stack
-          cards: []
-        show_empty: false
-        card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
-
-      # ── DYNAMISCH: Gruppe 1 ───────────────────────────────────────────────
-      - type: custom:auto-entities
-        card:
-          type: entities
-          show_header_toggle: false
-        filter:
-          include:
-            - attributes:
-                bu_id: 19
-                group_id: 1
-              options:
-                secondary_info: last-changed
+          type: custom:mushroom-template-card
+          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
+          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
+          icon: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+          icon_color: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+          tap_action:
+            action: more-info
         sort:
           method: attribute
           attribute: sort_order
         show_empty: false
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 1']
-                or (states('input_select.stein_filter') == 'Probleme'
-                    and (states.sensor | selectattr('attributes.bu_id','defined')
-                         | selectattr('attributes.group_id','equalto',1)
-                         | selectattr('attributes.status_raw','ne','ready') | list | count) > 0)
-                or states('input_select.stein_filter') in ['Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
-      # ── Gruppe 2 ──────────────────────────────────────────────────────────
+      # ── Gruppe 2: Geraete ─────────────────────────────────────────────────
       - type: custom:mushroom-title-card
-        title: Geraete (Gruppe 2)
+        title: Geraete
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 2','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 2','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
       - type: custom:auto-entities
         card:
-          type: entities
-          show_header_toggle: false
+          type: custom:mushroom-template-card
+          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
+          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
+          icon: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+          icon_color: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+          tap_action:
+            action: more-info
         filter:
           include:
             - attributes:
@@ -374,30 +347,27 @@ views:
           attribute: sort_order
         show_empty: false
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 2']
-                or (states('input_select.stein_filter') == 'Probleme'
-                    and (states.sensor | selectattr('attributes.bu_id','defined')
-                         | selectattr('attributes.group_id','equalto',2)
-                         | selectattr('attributes.status_raw','ne','ready') | list | count) > 0)
-                or states('input_select.stein_filter') in ['Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 2','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
-      # ── Gruppe 3 ──────────────────────────────────────────────────────────
+      # ── Gruppe 3: Sonderfunktionen ────────────────────────────────────────
       - type: custom:mushroom-title-card
-        title: Sonderfunktionen (Gruppe 3)
+        title: Sonderfunktionen
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 3','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 3','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
       - type: custom:auto-entities
         card:
-          type: entities
-          show_header_toggle: false
+          type: custom:mushroom-template-card
+          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
+          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
+          icon: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+          icon_color: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+          tap_action:
+            action: more-info
         filter:
           include:
             - attributes:
@@ -408,30 +378,27 @@ views:
           attribute: sort_order
         show_empty: false
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 3']
-                or (states('input_select.stein_filter') == 'Probleme'
-                    and (states.sensor | selectattr('attributes.bu_id','defined')
-                         | selectattr('attributes.group_id','equalto',3)
-                         | selectattr('attributes.status_raw','ne','ready') | list | count) > 0)
-                or states('input_select.stein_filter') in ['Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 3','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
-      # ── Gruppe 4 ──────────────────────────────────────────────────────────
+      # ── Gruppe 4: Einheiten ───────────────────────────────────────────────
       - type: custom:mushroom-title-card
-        title: Einheiten (Gruppe 4)
+        title: Einheiten
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 4','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 4','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
       - type: custom:auto-entities
         card:
-          type: entities
-          show_header_toggle: false
+          type: custom:mushroom-template-card
+          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
+          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
+          icon: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+          icon_color: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+          tap_action:
+            action: more-info
         filter:
           include:
             - attributes:
@@ -442,30 +409,27 @@ views:
           attribute: sort_order
         show_empty: false
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 4']
-                or (states('input_select.stein_filter') == 'Probleme'
-                    and (states.sensor | selectattr('attributes.bu_id','defined')
-                         | selectattr('attributes.group_id','equalto',4)
-                         | selectattr('attributes.status_raw','ne','ready') | list | count) > 0)
-                or states('input_select.stein_filter') in ['Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 4','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
-      # ── Gruppe 5 ──────────────────────────────────────────────────────────
+      # ── Gruppe 5: Anhaenger ───────────────────────────────────────────────
       - type: custom:mushroom-title-card
-        title: Anhaenger (Gruppe 5)
+        title: Anhaenger
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in
-                ['Alle','Gruppe 5','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 5','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
 
       - type: custom:auto-entities
         card:
-          type: entities
-          show_header_toggle: false
+          type: custom:mushroom-template-card
+          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
+          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
+          icon: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+          icon_color: >
+            {% set s = state_attr(entity,'status_raw') %}
+            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+          tap_action:
+            action: more-info
         filter:
           include:
             - attributes:
@@ -476,12 +440,4 @@ views:
           attribute: sort_order
         show_empty: false
         card_mod:
-          style: >
-            :host { display:
-              {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 5']
-                or (states('input_select.stein_filter') == 'Probleme'
-                    and (states.sensor | selectattr('attributes.bu_id','defined')
-                         | selectattr('attributes.group_id','equalto',5)
-                         | selectattr('attributes.status_raw','ne','ready') | list | count) > 0)
-                or states('input_select.stein_filter') in ['Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung']
-                else 'none' }}; }
+          style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 5','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
