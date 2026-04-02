@@ -37,3 +37,16 @@ input_select:
       - Wartung
     initial: Alle
     icon: mdi:filter
+
+# Zusaetzlich in configuration.yaml einfuegen:
+# input_text:
+#   stein_selected:
+#     name: STEIN Ausgewaehltes Asset
+#     initial: ""
+#     max: 255
+
+input_text:
+  stein_selected:
+    name: STEIN Ausgewaehltes Asset
+    initial: ""
+    max: 255
