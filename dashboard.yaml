@@ -284,39 +284,40 @@ views:
 
       - type: custom:auto-entities
         card:
-          type: custom:auto-entities
-          card:
-            type: vertical-stack
-            cards: []
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
         filter:
           include:
             - attributes:
                 bu_id: 19
                 group_id: 1
-              card_mod:
-                style: |
-                  :host {
-                    --icon-color: {% set s = state_attr(config.entity, 'status_raw') %}
-                      {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %};
-                  }
-        card:
-          type: custom:mushroom-template-card
-          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
-          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
-          icon: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
-          icon_color: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
-          tap_action:
-            action: more-info
+              options:
+                type: custom:mushroom-template-card
+                primary: "{{ state_attr(config.entity,'label') | default(state_attr(config.entity,'friendly_name')) }}"
+                secondary: >
+                  {{ states(config.entity) }}
+                  {%- if state_attr(config.entity,'radio_name') %} · {{ state_attr(config.entity,'radio_name') }}{%- endif %}
+                  {%- if state_attr(config.entity,'comment') and state_attr(config.entity,'comment') | trim | length > 0 %} · {{ state_attr(config.entity,'comment') }}{%- endif %}
+                icon: >
+                  {% set s = state_attr(config.entity,'status_raw') %}
+                  {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
+                icon_color: >
+                  {% set s = state_attr(config.entity,'status_raw') %}
+                  {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
+                badge_icon: >
+                  {% if state_attr(config.entity,'operation_reservation') %}mdi:bookmark-check{% endif %}
+                badge_color: blue
+                tap_action:
+                  action: more-info
         sort:
           method: attribute
           attribute: sort_order
         show_empty: false
         card_mod:
           style: ":host { display: {{ 'block' if states('input_select.stein_filter') in ['Alle','Gruppe 1','Bereit','Bedingt','Nicht bereit','Im Einsatz','Wartung','Probleme'] else 'none' }}; }"
+
 
       # ── Gruppe 2: Geraete ─────────────────────────────────────────────────
       - type: custom:mushroom-title-card
@@ -326,22 +327,33 @@ views:
 
       - type: custom:auto-entities
         card:
-          type: custom:mushroom-template-card
-          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
-          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
-          icon: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
-          icon_color: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
-          tap_action:
-            action: more-info
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
         filter:
           include:
             - attributes:
                 bu_id: 19
                 group_id: 2
+              options:
+                type: custom:mushroom-template-card
+                primary: "{{ state_attr(config.entity,'label') | default(state_attr(config.entity,'friendly_name')) }}"
+                secondary: >
+                  {{ states(config.entity) }}
+                  {%- if state_attr(config.entity,'radio_name') %} · {{ state_attr(config.entity,'radio_name') }}{%- endif %}
+                  {%- if state_attr(config.entity,'comment') and state_attr(config.entity,'comment') | trim | length > 0 %} · {{ state_attr(config.entity,'comment') }}{%- endif %}
+                icon: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}mdi:check-circle{%- elif s == 'notready' %}mdi:close-circle{%- elif s == 'semiready' %}mdi:alert-circle{%- elif s == 'inuse' %}mdi:fire-truck{%- elif s == 'maint' %}mdi:wrench{%- else %}mdi:help-circle{%- endif %}
+                icon_color: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}green{%- elif s == 'notready' %}red{%- elif s == 'semiready' %}orange{%- elif s == 'inuse' %}blue{%- elif s == 'maint' %}purple{%- else %}grey{%- endif %}
+                badge_icon: >
+                  {%- if state_attr(config.entity,'operation_reservation') %}mdi:bookmark-check{%- endif %}
+                badge_color: blue
+                tap_action:
+                  action: more-info
         sort:
           method: attribute
           attribute: sort_order
@@ -357,22 +369,33 @@ views:
 
       - type: custom:auto-entities
         card:
-          type: custom:mushroom-template-card
-          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
-          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
-          icon: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
-          icon_color: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
-          tap_action:
-            action: more-info
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
         filter:
           include:
             - attributes:
                 bu_id: 19
                 group_id: 3
+              options:
+                type: custom:mushroom-template-card
+                primary: "{{ state_attr(config.entity,'label') | default(state_attr(config.entity,'friendly_name')) }}"
+                secondary: >
+                  {{ states(config.entity) }}
+                  {%- if state_attr(config.entity,'radio_name') %} · {{ state_attr(config.entity,'radio_name') }}{%- endif %}
+                  {%- if state_attr(config.entity,'comment') and state_attr(config.entity,'comment') | trim | length > 0 %} · {{ state_attr(config.entity,'comment') }}{%- endif %}
+                icon: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}mdi:check-circle{%- elif s == 'notready' %}mdi:close-circle{%- elif s == 'semiready' %}mdi:alert-circle{%- elif s == 'inuse' %}mdi:fire-truck{%- elif s == 'maint' %}mdi:wrench{%- else %}mdi:help-circle{%- endif %}
+                icon_color: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}green{%- elif s == 'notready' %}red{%- elif s == 'semiready' %}orange{%- elif s == 'inuse' %}blue{%- elif s == 'maint' %}purple{%- else %}grey{%- endif %}
+                badge_icon: >
+                  {%- if state_attr(config.entity,'operation_reservation') %}mdi:bookmark-check{%- endif %}
+                badge_color: blue
+                tap_action:
+                  action: more-info
         sort:
           method: attribute
           attribute: sort_order
@@ -388,22 +411,33 @@ views:
 
       - type: custom:auto-entities
         card:
-          type: custom:mushroom-template-card
-          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
-          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
-          icon: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
-          icon_color: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
-          tap_action:
-            action: more-info
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
         filter:
           include:
             - attributes:
                 bu_id: 19
                 group_id: 4
+              options:
+                type: custom:mushroom-template-card
+                primary: "{{ state_attr(config.entity,'label') | default(state_attr(config.entity,'friendly_name')) }}"
+                secondary: >
+                  {{ states(config.entity) }}
+                  {%- if state_attr(config.entity,'radio_name') %} · {{ state_attr(config.entity,'radio_name') }}{%- endif %}
+                  {%- if state_attr(config.entity,'comment') and state_attr(config.entity,'comment') | trim | length > 0 %} · {{ state_attr(config.entity,'comment') }}{%- endif %}
+                icon: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}mdi:check-circle{%- elif s == 'notready' %}mdi:close-circle{%- elif s == 'semiready' %}mdi:alert-circle{%- elif s == 'inuse' %}mdi:fire-truck{%- elif s == 'maint' %}mdi:wrench{%- else %}mdi:help-circle{%- endif %}
+                icon_color: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}green{%- elif s == 'notready' %}red{%- elif s == 'semiready' %}orange{%- elif s == 'inuse' %}blue{%- elif s == 'maint' %}purple{%- else %}grey{%- endif %}
+                badge_icon: >
+                  {%- if state_attr(config.entity,'operation_reservation') %}mdi:bookmark-check{%- endif %}
+                badge_color: blue
+                tap_action:
+                  action: more-info
         sort:
           method: attribute
           attribute: sort_order
@@ -419,22 +453,33 @@ views:
 
       - type: custom:auto-entities
         card:
-          type: custom:mushroom-template-card
-          primary: "{{ state_attr(entity,'label') | default(state_attr(entity,'friendly_name')) }}"
-          secondary: "{{ states(entity) }}{% if state_attr(entity,'comment') and state_attr(entity,'comment') | trim | length > 0 %} · {{ state_attr(entity,'comment') }}{% endif %}"
-          icon: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}mdi:check-circle{% elif s == 'notready' %}mdi:close-circle{% elif s == 'semiready' %}mdi:alert-circle{% elif s == 'inuse' %}mdi:fire-truck{% elif s == 'maint' %}mdi:wrench{% else %}mdi:help-circle{% endif %}
-          icon_color: >
-            {% set s = state_attr(entity,'status_raw') %}
-            {% if s == 'ready' %}green{% elif s == 'notready' %}red{% elif s == 'semiready' %}orange{% elif s == 'inuse' %}blue{% elif s == 'maint' %}purple{% else %}grey{% endif %}
-          tap_action:
-            action: more-info
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
         filter:
           include:
             - attributes:
                 bu_id: 19
                 group_id: 5
+              options:
+                type: custom:mushroom-template-card
+                primary: "{{ state_attr(config.entity,'label') | default(state_attr(config.entity,'friendly_name')) }}"
+                secondary: >
+                  {{ states(config.entity) }}
+                  {%- if state_attr(config.entity,'radio_name') %} · {{ state_attr(config.entity,'radio_name') }}{%- endif %}
+                  {%- if state_attr(config.entity,'comment') and state_attr(config.entity,'comment') | trim | length > 0 %} · {{ state_attr(config.entity,'comment') }}{%- endif %}
+                icon: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}mdi:check-circle{%- elif s == 'notready' %}mdi:close-circle{%- elif s == 'semiready' %}mdi:alert-circle{%- elif s == 'inuse' %}mdi:fire-truck{%- elif s == 'maint' %}mdi:wrench{%- else %}mdi:help-circle{%- endif %}
+                icon_color: >
+                  {%- set s = state_attr(config.entity,'status_raw') %}
+                  {%- if s == 'ready' %}green{%- elif s == 'notready' %}red{%- elif s == 'semiready' %}orange{%- elif s == 'inuse' %}blue{%- elif s == 'maint' %}purple{%- else %}grey{%- endif %}
+                badge_icon: >
+                  {%- if state_attr(config.entity,'operation_reservation') %}mdi:bookmark-check{%- endif %}
+                badge_color: blue
+                tap_action:
+                  action: more-info
         sort:
           method: attribute
           attribute: sort_order
