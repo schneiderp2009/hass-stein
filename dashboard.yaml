@@ -6,127 +6,57 @@ views:
   max_columns: 1
   cards:
   - type: custom:mushroom-template-card
-    primary: '{% if states(''sensor.stein_bu_19'') not in [''unavailable'',''unknown''] %}{{ state_attr(''sensor.stein_bu_19'',''name'') | default(''THW OV'') }} ({{ state_attr(''sensor.stein_bu_19'',''code'') | default('''') }}){% else %}{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default(''STEIN'') }}{% endif %}'
-    secondary: '{% if states(''sensor.stein_bu_19'') not in [''unavailable'',''unknown''] %}{% set r=state_attr(''sensor.stein_bu_19'',''stats_ready'')|default(0)|int %}{% set t=state_attr(''sensor.stein_bu_19'',''stats_ready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_notready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_semiready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_inuse'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_maint'')|default(0)|int %}{{ r }}/{{ t }} einsatzbereit · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}{% else %}{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}{% endif %}'
+    primary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default(''STEIN'') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
+    secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}'
     icon: mdi:home-group
-    icon_color: '{% set r=state_attr(''sensor.stein_bu_19'',''stats_ready'') | default(0) | int %}{% set total=state_attr(''sensor.stein_bu_19'',''stats_ready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_notready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_semiready'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_inuse'')|default(0)|int + state_attr(''sensor.stein_bu_19'',''stats_maint'')|default(0)|int %}{% if total > 0 and (r/total) >= 0.75 %}green{% elif total > 0 and (r/total) >= 0.5 %}orange{% elif total > 0 %}red{% else %}blue{% endif %}'
+    icon_color: '{% if state_attr(''sensor.stein_api_stein_verbindung'',''active'') %}green{% else %}red{% endif %}'
     tap_action:
       action: fire-dom-event
       browser_mod:
         service: browser_mod.popup
         data:
-          title: Ortsverband & API
+          title: API & Ortsverband
           content:
-            type: vertical-stack
-            cards:
-            - type: custom:mushroom-template-card
-              primary: '{% if states(''sensor.stein_bu_19'') not in [''unavailable'',''unknown''] %}{{ state_attr(''sensor.stein_bu_19'',''name'') }} ({{ state_attr(''sensor.stein_bu_19'',''code'') }}){% else %}STEIN{% endif %}'
-              secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}'
-              icon: mdi:home-group
-              icon_color: blue
-            - type: entities
-              title: Ortsverband
-              show_header_toggle: false
-              entities:
-              - type: template
-                entity: sensor.stein_bu_19
-                content: '{% if states(''sensor.stein_bu_19'') not in [''unavailable'',''unknown''] %}{{ state_attr(''sensor.stein_bu_19'',''name'') }}{% else %}Noch nicht geladen{% endif %}'
-                state_color: false
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: name
-                name: Name
-                icon: mdi:home-group
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: code
-                name: Kürzel
-                icon: mdi:identifier
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: id
-                name: ID
-                icon: mdi:numeric
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: region_id
-                name: Region-ID
-                icon: mdi:map-marker
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: author
-                name: Erstellt von
-                icon: mdi:account
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: last_modified
-                name: Letzte Änderung
-                icon: mdi:clock-edit
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: comment
-                name: Kommentar / Kontakt
-                icon: mdi:comment-text
-            - type: entities
-              title: Einsatzstatistik
-              show_header_toggle: false
-              entities:
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: stats_ready
-                name: Einsatzbereit
-                icon: mdi:check-circle
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: stats_notready
-                name: Nicht einsatzbereit
-                icon: mdi:close-circle
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: stats_semiready
-                name: Bedingt bereit
-                icon: mdi:alert-circle
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: stats_inuse
-                name: Im Einsatz
-                icon: mdi:fire-truck
-              - type: attribute
-                entity: sensor.stein_bu_19
-                attribute: stats_maint
-                name: In Wartung
-                icon: mdi:wrench
-            - type: entities
-              title: API Verbindung
-              show_header_toggle: false
-              entities:
-              - entity: sensor.stein_api_stein_verbindung
-                name: Nutzer
-              - type: attribute
-                entity: sensor.stein_api_stein_verbindung
-                attribute: email
-                name: E-Mail
-                icon: mdi:email
-              - type: attribute
-                entity: sensor.stein_api_stein_verbindung
-                attribute: scope
-                name: Zugriffsbereich
-                icon: mdi:shield-account
-              - type: attribute
-                entity: sensor.stein_api_stein_verbindung
-                attribute: scope_role_permission
-                name: Berechtigung
-                icon: mdi:key
-              - type: attribute
-                entity: sensor.stein_api_stein_verbindung
-                attribute: tech_user
-                name: Techn. Nutzer
-                icon: mdi:robot
-              - type: attribute
-                entity: sensor.stein_api_stein_verbindung
-                attribute: active
-                name: Aktiv
-                icon: mdi:check-circle
+            type: entities
+            show_header_toggle: false
+            entities:
+            - entity: sensor.stein_api_stein_verbindung
+              name: API Nutzer
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: email
+              name: E-Mail
+              icon: mdi:email
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope
+              name: Zugriffsbereich
+              icon: mdi:shield-account
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope_role_entity
+              name: Entität
+              icon: mdi:identifier
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope_role_entity_id
+              name: BU-ID
+              icon: mdi:numeric
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: scope_role_permission
+              name: Berechtigung
+              icon: mdi:key
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: tech_user
+              name: Techn. Nutzer
+              icon: mdi:robot
+            - type: attribute
+              entity: sensor.stein_api_stein_verbindung
+              attribute: active
+              name: Aktiv
+              icon: mdi:check-circle
   - type: horizontal-stack
     cards:
     - type: custom:mushroom-template-card
