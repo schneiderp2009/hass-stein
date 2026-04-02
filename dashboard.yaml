@@ -6,10 +6,10 @@ views:
   max_columns: 1
   cards:
   - type: custom:mushroom-template-card
-    primary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''name'') | default(''STEIN'') }} · {{ state_attr(''sensor.stein_api_stein_verbindung'',''scope'') | default('''') }}'
-    secondary: '{{ state_attr(''sensor.stein_api_stein_verbindung'',''email'') | default('''') }}'
+    primary: '{{ state_attr(''sensor.schwabisch_gmund_fahrzeuge_gesamt'',''name'') | default(''THW OV'') }} ({{ state_attr(''sensor.schwabisch_gmund_fahrzeuge_gesamt'',''code'') | default('''') }})'
+    secondary: '{% set r=state_attr(''sensor.schwabisch_gmund_fahrzeuge_gesamt'',''stats_ready'')|default(0)|int %}{% set t=state_attr(''sensor.schwabisch_gmund_fahrzeuge_gesamt'',''readiness_pct'')|default(0)|int %}{{ r }} Einsatzbereit · {{ t }}% · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'')|default('''') }}'
     icon: mdi:home-group
-    icon_color: '{% if state_attr(''sensor.stein_api_stein_verbindung'',''active'') %}green{% else %}red{% endif %}'
+    icon_color: '{% set p=state_attr(''sensor.schwabisch_gmund_fahrzeuge_gesamt'',''readiness_pct'')|default(0)|int %}{% if p>=75 %}green{% elif p>=50 %}orange{% else %}red{% endif %}'
     tap_action:
       action: fire-dom-event
       browser_mod:
@@ -17,108 +17,169 @@ views:
         data:
           title: API & Ortsverband
           content:
-            type: entities
-            show_header_toggle: false
-            entities:
-            - entity: sensor.stein_api_stein_verbindung
-              name: API Nutzer
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: email
-              name: E-Mail
-              icon: mdi:email
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: scope
-              name: Zugriffsbereich
-              icon: mdi:shield-account
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: scope_role_entity
-              name: Entität
-              icon: mdi:identifier
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: scope_role_entity_id
-              name: BU-ID
-              icon: mdi:numeric
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: scope_role_permission
-              name: Berechtigung
-              icon: mdi:key
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: tech_user
-              name: Techn. Nutzer
-              icon: mdi:robot
-            - type: attribute
-              entity: sensor.stein_api_stein_verbindung
-              attribute: active
-              name: Aktiv
-              icon: mdi:check-circle
-  - type: horizontal-stack
-    cards:
-    - type: custom:mushroom-template-card
-      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anhaenger_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''ready'' else 0) }}'
-      secondary: Bereit
-      icon: mdi:check-circle
+            type: vertical-stack
+            cards:
+            - type: entities
+              title: Ortsverband
+              show_header_toggle: false
+              entities:
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: name
+                name: Name
+                icon: mdi:home-group
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: code
+                name: Kürzel
+                icon: mdi:identifier
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: id
+                name: ID
+                icon: mdi:numeric
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: region_id
+                name: Region-ID
+                icon: mdi:map-marker
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: author
+                name: Erstellt von
+                icon: mdi:account
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: last_modified
+                name: Letzte Änderung
+                icon: mdi:clock-edit
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: comment
+                name: Kommentar / Kontakt
+                icon: mdi:comment-text
+            - type: entities
+              title: Einsatzstatistik
+              show_header_toggle: false
+              entities:
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: stats_ready
+                name: Einsatzbereit
+                icon: mdi:check-circle
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: stats_notready
+                name: Nicht einsatzbereit
+                icon: mdi:close-circle
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: stats_semiready
+                name: Bedingt bereit
+                icon: mdi:alert-circle
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: stats_inuse
+                name: Im Einsatz
+                icon: mdi:fire-truck
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: stats_maint
+                name: In Wartung
+                icon: mdi:wrench
+              - type: attribute
+                entity: sensor.schwabisch_gmund_fahrzeuge_gesamt
+                attribute: readiness_pct
+                name: Einsatzbereit %
+                icon: mdi:chart-bar
+            - type: entities
+              title: API Verbindung
+              show_header_toggle: false
+              entities:
+              - entity: sensor.stein_api_stein_verbindung
+                name: Nutzer
+              - type: attribute
+                entity: sensor.stein_api_stein_verbindung
+                attribute: email
+                name: E-Mail
+                icon: mdi:email
+              - type: attribute
+                entity: sensor.stein_api_stein_verbindung
+                attribute: scope
+                name: Zugriffsbereich
+                icon: mdi:shield-account
+              - type: attribute
+                entity: sensor.stein_api_stein_verbindung
+                attribute: scope_role_permission
+                name: Berechtigung
+                icon: mdi:key
+              - type: attribute
+                entity: sensor.stein_api_stein_verbindung
+                attribute: active
+                name: Aktiv
+                icon: mdi:check-circle
+  - cards:
+    - icon: mdi:check-circle
       icon_color: green
       layout: vertical
+      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anhanger_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''ready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''ready'' else 0) }}'
+      secondary: Bereit
       tap_action:
         action: call-service
         service: input_select.select_option
         service_data:
           entity_id: input_select.stein_filter
           option: Bereit
-    - type: custom:mushroom-template-card
-      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anhaenger_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''semiready'' else 0) }}'
-      secondary: Bedingt
-      icon: mdi:alert-circle
+      type: custom:mushroom-template-card
+    - icon: mdi:alert-circle
       icon_color: orange
       layout: vertical
+      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anhanger_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''semiready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''semiready'' else 0) }}'
+      secondary: Bedingt
       tap_action:
         action: call-service
         service: input_select.select_option
         service_data:
           entity_id: input_select.stein_filter
           option: Bedingt
-    - type: custom:mushroom-template-card
-      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anhaenger_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''notready'' else 0) }}'
-      secondary: Nicht bereit
-      icon: mdi:close-circle
+      type: custom:mushroom-template-card
+    - icon: mdi:close-circle
       icon_color: red
       layout: vertical
+      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anhanger_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''notready'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''notready'' else 0) }}'
+      secondary: Nicht bereit
       tap_action:
         action: call-service
         service: input_select.select_option
         service_data:
           entity_id: input_select.stein_filter
           option: Nicht bereit
-    - type: custom:mushroom-template-card
-      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anhaenger_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''inuse'' else 0) }}'
-      secondary: Im Einsatz
-      icon: mdi:fire-truck
+      type: custom:mushroom-template-card
+    - icon: mdi:fire-truck
       icon_color: blue
       layout: vertical
+      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anhanger_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''inuse'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''inuse'' else 0) }}'
+      secondary: Im Einsatz
       tap_action:
         action: call-service
         service: input_select.select_option
         service_data:
           entity_id: input_select.stein_filter
           option: Im Einsatz
-    - type: custom:mushroom-template-card
-      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anhaenger_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''maint'' else 0) }}'
-      secondary: Wartung
-      icon: mdi:wrench
+      type: custom:mushroom-template-card
+    - icon: mdi:wrench
       icon_color: purple
       layout: vertical
+      primary: '{{ (1 if state_attr(''sensor.gkw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_werkstatt_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.stapler_35_to_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mtw_tz_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_kipper_lkr_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.nea_200kva_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.lkw_lbw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mtw_ov_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.mzkw_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anhanger_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.anh_pf_12t_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.technischer_berater_arbeitssicherheit_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachberater_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachgruppe_elektroversorgung_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.fachgruppe_notversorgung_und_notinstandsetzung_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.bergungsgruppe_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.zugtrupp_status'',''status_raw'')==''maint'' else 0) + (1 if state_attr(''sensor.luk_status'',''status_raw'')==''maint'' else 0) }}'
+      secondary: Wartung
       tap_action:
         action: call-service
         service: input_select.select_option
         service_data:
           entity_id: input_select.stein_filter
           option: Wartung
+      type: custom:mushroom-template-card
+    type: horizontal-stack
   - type: custom:mushroom-chips-card
     chips:
     - type: template
@@ -1755,10 +1816,10 @@ views:
                 icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Einheiten''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.luk_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.luk_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.luk_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.luk_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.luk_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.luk_status'',''status_raw'')==''maint'') else ''none'' }}; }'
-  - type: custom:mushroom-title-card
+  - card_mod:
+      style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'') in [''Probleme'',''Bedingt'',''Nicht bereit'',''Im Einsatz'',''Wartung''] and (state_attr(''sensor.anh_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anhanger_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anh_pf_12t_status'',''status_raw'') not in [''ready''])) else ''none'' }}; }'
     title: Anhaenger
-    card_mod:
-      style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'') in [''Probleme'',''Bedingt'',''Nicht bereit'',''Im Einsatz'',''Wartung''] and (state_attr(''sensor.anh_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anhaenger_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.nea_50_kva_lima_status'',''status_raw'') not in [''ready''] or state_attr(''sensor.anh_pf_12t_status'',''status_raw'') not in [''ready''])) else ''none'' }}; }'
+    type: custom:mushroom-title-card
   - type: custom:mushroom-template-card
     entity: sensor.anh_status
     primary: '{{ state_attr(''sensor.anh_status'',''label'') | default(''Anh'') }}{%- if state_attr(''sensor.anh_status'',''radio_name'') %} · {{ state_attr(''sensor.anh_status'',''radio_name'') }}{%- endif %}{%- if state_attr(''sensor.anh_status'',''name'') %} · {{ state_attr(''sensor.anh_status'',''name'') }}{%- endif %}'
@@ -1953,103 +2014,103 @@ views:
                 icon: mdi:identifier
     card_mod:
       style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anh_tieflader_13t_status'',''status_raw'')==''maint'') else ''none'' }}; }'
-  - type: custom:mushroom-template-card
-    entity: sensor.anhaenger_status
-    primary: '{{ state_attr(''sensor.anhaenger_status'',''label'') | default(''Anhaenger'') }}{%- if state_attr(''sensor.anhaenger_status'',''radio_name'') %} · {{ state_attr(''sensor.anhaenger_status'',''radio_name'') }}{%- endif %}{%- if state_attr(''sensor.anhaenger_status'',''name'') %} · {{ state_attr(''sensor.anhaenger_status'',''name'') }}{%- endif %}'
-    secondary: '{{ states(''sensor.anhaenger_status'') }}{%- if state_attr(''sensor.anhaenger_status'',''comment'') and state_attr(''sensor.anhaenger_status'',''comment'')|trim|length > 0 %} · {{ state_attr(''sensor.anhaenger_status'',''comment'') }}{%- endif %}'
-    icon: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
-    icon_color: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
-    badge_icon: '{% if state_attr(''sensor.anhaenger_status'',''operation_reservation'') %}mdi:bookmark-check{% endif %}'
-    badge_color: blue
+  - badge_color: blue
+    badge_icon: '{% if state_attr(''sensor.anhanger_status'',''operation_reservation'') %}mdi:bookmark-check{% endif %}'
+    card_mod:
+      style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anhanger_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anhanger_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anhanger_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anhanger_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anhanger_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anhanger_status'',''status_raw'')==''maint'') else ''none'' }}; }'
+    entity: sensor.anhanger_status
+    icon: '{% set st=state_attr(''sensor.anhanger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
+    icon_color: '{% set st=state_attr(''sensor.anhanger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
+    primary: '{{ state_attr(''sensor.anhanger_status'',''label'') | default(''Anhaenger'') }}{%- if state_attr(''sensor.anhanger_status'',''radio_name'') %} · {{ state_attr(''sensor.anhanger_status'',''radio_name'') }}{%- endif %}{%- if state_attr(''sensor.anhanger_status'',''name'') %} · {{ state_attr(''sensor.anhanger_status'',''name'') }}{%- endif %}'
+    secondary: '{{ states(''sensor.anhanger_status'') }}{%- if state_attr(''sensor.anhanger_status'',''comment'') and state_attr(''sensor.anhanger_status'',''comment'')|trim|length > 0 %} · {{ state_attr(''sensor.anhanger_status'',''comment'') }}{%- endif %}'
     tap_action:
       action: fire-dom-event
       browser_mod:
-        service: browser_mod.popup
         data:
-          title: Anhaenger
           content:
-            type: vertical-stack
             cards:
-            - type: custom:mushroom-template-card
-              primary: '{{ state_attr(''sensor.anhaenger_status'',''label'') | default(''Anhaenger'') }}{%- if state_attr(''sensor.anhaenger_status'',''name'') %} · {{ state_attr(''sensor.anhaenger_status'',''name'') }}{%- endif %}'
-              secondary: '{% set ts=state_attr(''sensor.anhaenger_status'',''last_modified'') %}{% set by=state_attr(''sensor.anhaenger_status'',''last_modified_by'') %}{% if by and ts %}Zuletzt von {{ by }} am {{ as_timestamp(ts)|timestamp_custom(''%d. %b %Y %H:%M'') }}{% endif %}'
-              icon: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
-              icon_color: '{% set st=state_attr(''sensor.anhaenger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
-            - type: entities
-              title: Status
-              show_header_toggle: false
-              entities:
-              - entity: select.anhaenger_status_setzen
+            - icon: '{% set st=state_attr(''sensor.anhanger_status'',''status_raw'') %}{% if st==''ready'' %}mdi:check-circle{% elif st==''notready'' %}mdi:close-circle{% elif st==''semiready'' %}mdi:alert-circle{% elif st==''inuse'' %}mdi:fire-truck{% elif st==''maint'' %}mdi:wrench{% else %}mdi:help-circle{% endif %}'
+              icon_color: '{% set st=state_attr(''sensor.anhanger_status'',''status_raw'') %}{% if st==''ready'' %}green{% elif st==''notready'' %}red{% elif st==''semiready'' %}orange{% elif st==''inuse'' %}blue{% elif st==''maint'' %}purple{% else %}grey{% endif %}'
+              primary: '{{ state_attr(''sensor.anhanger_status'',''label'') | default(''Anhaenger'') }}{%- if state_attr(''sensor.anhanger_status'',''name'') %} · {{ state_attr(''sensor.anhanger_status'',''name'') }}{%- endif %}'
+              secondary: '{% set ts=state_attr(''sensor.anhanger_status'',''last_modified'') %}{% set by=state_attr(''sensor.anhanger_status'',''last_modified_by'') %}{% if by and ts %}Zuletzt von {{ by }} am {{ as_timestamp(ts)|timestamp_custom(''%d. %b %Y %H:%M'') }}{% endif %}'
+              type: custom:mushroom-template-card
+            - entities:
+              - entity: select.anhanger_status_setzen
                 name: Status
-              - entity: switch.anhaenger_einsatzreservierung
+              - entity: switch.anhanger_einsatzreservierung
                 name: Einsatzreservierung
-            - type: entities
-              title: Felder bearbeiten
               show_header_toggle: false
-              entities:
-              - entity: text.anhaenger_bezeichnung
+              title: Status
+              type: entities
+            - entities:
+              - entity: text.anhanger_bezeichnung
                 name: Bezeichnung
-              - entity: text.anhaenger_name
+              - entity: text.anhanger_name
                 name: Name / Kennzeichen
-              - entity: text.anhaenger_funkrufname
+              - entity: text.anhanger_funkrufname
                 name: Funkrufname
-              - entity: text.anhaenger_kommentar
+              - entity: text.anhanger_kommentar
                 name: Kommentar
-              - entity: text.anhaenger_kategorie
+              - entity: text.anhanger_kategorie
                 name: Kategorie
-              - entity: text.anhaenger_issi
+              - entity: text.anhanger_issi
                 name: ISSI
-            - type: entities
-              title: Details
               show_header_toggle: false
-              entities:
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: category
-                name: Kategorie
+              title: Felder bearbeiten
+              type: entities
+            - entities:
+              - attribute: category
+                entity: sensor.anhanger_status
                 icon: mdi:shape
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: radio_name
-                name: Funkrufname
+                name: Kategorie
+                type: attribute
+              - attribute: radio_name
+                entity: sensor.anhanger_status
                 icon: mdi:radio
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: issi
-                name: ISSI
+                name: Funkrufname
+                type: attribute
+              - attribute: issi
+                entity: sensor.anhanger_status
                 icon: mdi:signal
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: hu_valid_until
-                name: HU gültig bis
+                name: ISSI
+                type: attribute
+              - attribute: hu_valid_until
+                entity: sensor.anhanger_status
                 icon: mdi:calendar-check
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: comment
-                name: Kommentar
+                name: HU gültig bis
+                type: attribute
+              - attribute: comment
+                entity: sensor.anhanger_status
                 icon: mdi:comment-text
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: last_modified_by
-                name: Geändert von
+                name: Kommentar
+                type: attribute
+              - attribute: last_modified_by
+                entity: sensor.anhanger_status
                 icon: mdi:account-edit
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: last_modified
-                name: Geändert am
+                name: Geändert von
+                type: attribute
+              - attribute: last_modified
+                entity: sensor.anhanger_status
                 icon: mdi:clock-edit
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: group_id
-                name: Gruppe
+                name: Geändert am
+                type: attribute
+              - attribute: group_id
+                entity: sensor.anhanger_status
                 icon: mdi:folder
-              - type: attribute
-                entity: sensor.anhaenger_status
-                attribute: id
-                name: Asset-ID
+                name: Gruppe
+                type: attribute
+              - attribute: id
+                entity: sensor.anhanger_status
                 icon: mdi:identifier
-    card_mod:
-      style: ':host { display: {{ ''block'' if states(''input_select.stein_filter'') in [''Alle'',''Anhaenger''] or (states(''input_select.stein_filter'')==''Probleme'' and state_attr(''sensor.anhaenger_status'',''status_raw'') not in [''ready'']) or (states(''input_select.stein_filter'')==''Bereit'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''ready'') or (states(''input_select.stein_filter'')==''Bedingt'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''semiready'') or (states(''input_select.stein_filter'')==''Nicht bereit'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''notready'') or (states(''input_select.stein_filter'')==''Im Einsatz'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''inuse'') or (states(''input_select.stein_filter'')==''Wartung'' and state_attr(''sensor.anhaenger_status'',''status_raw'')==''maint'') else ''none'' }}; }'
+                name: Asset-ID
+                type: attribute
+              show_header_toggle: false
+              title: Details
+              type: entities
+            type: vertical-stack
+          title: Anhaenger
+        service: browser_mod.popup
+    type: custom:mushroom-template-card
   - type: custom:mushroom-template-card
     entity: sensor.nea_50_kva_lima_status
     primary: '{{ state_attr(''sensor.nea_50_kva_lima_status'',''label'') | default(''NEA 50 kVA LiMa'') }}{%- if state_attr(''sensor.nea_50_kva_lima_status'',''radio_name'') %} · {{ state_attr(''sensor.nea_50_kva_lima_status'',''radio_name'') }}{%- endif %}{%- if state_attr(''sensor.nea_50_kva_lima_status'',''name'') %} · {{ state_attr(''sensor.nea_50_kva_lima_status'',''name'') }}{%- endif %}'
