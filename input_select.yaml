@@ -1,15 +1,15 @@
-# Inhalt in /config/configuration.yaml einfuegen:
+# In /config/configuration.yaml einfuegen:
 #
 # input_select:
 #   stein_filter:
 #     name: STEIN Filter
 #     options:
 #       - Alle
-#       - Gruppe 1
-#       - Gruppe 2
-#       - Gruppe 3
-#       - Gruppe 4
-#       - Gruppe 5
+#       - Fahrzeuge
+#       - Geraete
+#       - Sonderfunktionen
+#       - Einheiten
+#       - Anhaenger
 #       - Probleme
 #       - Bereit
 #       - Bedingt
@@ -24,11 +24,11 @@ input_select:
     name: STEIN Filter
     options:
       - Alle
-      - Gruppe 1
-      - Gruppe 2
-      - Gruppe 3
-      - Gruppe 4
-      - Gruppe 5
+      - Fahrzeuge
+      - Geraete
+      - Sonderfunktionen
+      - Einheiten
+      - Anhaenger
       - Probleme
       - Bereit
       - Bedingt
@@ -37,16 +37,3 @@ input_select:
       - Wartung
     initial: Alle
     icon: mdi:filter
-
-# Zusaetzlich in configuration.yaml einfuegen:
-# input_text:
-#   stein_selected:
-#     name: STEIN Ausgewaehltes Asset
-#     initial: ""
-#     max: 255
-
-input_text:
-  stein_selected:
-    name: STEIN Ausgewaehltes Asset
-    initial: ""
-    max: 255
