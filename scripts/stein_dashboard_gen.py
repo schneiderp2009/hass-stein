@@ -228,12 +228,12 @@ def build_dashboard(assets, bu_ids):
             "type": "custom:mushroom-template-card",
             "primary": (f"{{{{ state_attr('{BU_SENSOR}','name') | default('THW OV {bu_id}') }}}}"
                         f" ({{{{ state_attr('{BU_SENSOR}','code') | default('') }}}})"),
-            "secondary": (f"{{% set r=state_attr('{BU_SENSOR}','stats_ready')|default(0)|int %}}"
-                          f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
+            "secondary": (f"{{% set r=state_attr('{BU_SENSOR}','stats_ready')| int(0) %}}"
+                          f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')| int(0) %}}"
                           f"{{{{ r }}}} Einsatzbereit · {{{{ p }}}}%"
                           f" · {{{{ state_attr('{VERBINDUNG}','email')|default('') }}}}"),
             "icon": "mdi:home-group",
-            "icon_color": (f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
+            "icon_color": (f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')| int(0) %}}"
                            f"{{% if p>=75 %}}green{{% elif p>=50 %}}orange{{% else %}}red{{% endif %}}"),
         "tap_action": {
             "action": "fire-dom-event",

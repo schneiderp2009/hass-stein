@@ -28,7 +28,6 @@ def _asset_device(asset: dict, coordinator: SteinCoordinator) -> DeviceInfo:
         name=f"STEIN {label}",
         manufacturer="STEIN",
         model=asset.get("category") or "Asset",
-        via_device=(DOMAIN, f"bu_{bu_id}"),
         suggested_area=bu.get("name"),
     )
 
