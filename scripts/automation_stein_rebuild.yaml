@@ -1,0 +1,19 @@
+# In /config/automations.yaml einfuegen oder als separate Datei importieren
+- alias: "STEIN Dashboard auto-rebuild"
+  description: "Generiert das Dashboard neu wenn neue STEIN-Entities registriert werden"
+  trigger:
+    - platform: event
+      event_type: entity_registry_updated
+      event_data:
+        action: create
+  condition:
+    - condition: template
+      value_template: "{{ 'stein' in trigger.event.data.get('entity_id','') }}"
+  action:
+    - delay: "00:00:10"
+    - service: shell_command.stein_dashboard_rebuild
+    - service: persistent_notification.create
+      data:
+        title: "STEIN Dashboard"
+        message: "Dashboard wurde automatisch aktualisiert – bitte Seite neu laden (F5)."
+        notification_id: "stein_dashboard_rebuild"
