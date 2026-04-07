@@ -85,23 +85,45 @@ def find_assets(states):
 
         # Zugehoerige Entities suchen – zuerst exakt per Base-Slug,
         # dann per Asset-ID falls vorhanden
+        # Aliase: verschiedene Suffix-Varianten die HA generieren kann
+        SUFFIX_ALIASES = {
+            "status_setzen":      ["status_setzen"],
+            "einsatzreservierung":["einsatzreservierung"],
+            "bezeichnung":        ["bezeichnung", "label"],
+            "name":               ["name"],
+            "funkrufname":        ["funkrufname", "radioname"],
+            "kommentar":          ["kommentar", "comment"],
+            "kategorie":          ["kategorie", "category"],
+            "issi":               ["issi"],
+        }
+
         def find_entity(domain, suffix):
-            # Versuch 1: domain.{base}_{suffix}
-            candidate = f"{domain}.{base}_{suffix}"
-            if candidate in all_entity_ids:
-                return candidate
-            # Versuch 2: domain.stein_{asset_id}_{suffix}
-            if asset_id:
-                candidate2 = f"{domain}.stein_{asset_id}_{suffix}"
-                if candidate2 in all_entity_ids:
-                    return candidate2
-            # Versuch 3: Suche nach asset_id in Entity-Attributen
+            aliases = SUFFIX_ALIASES.get(suffix, [suffix])
+            for alias in aliases:
+                # Versuch 1: domain.{base}_{alias}
+                candidate = f"{domain}.{base}_{alias}"
+                if candidate in all_entity_ids:
+                    return candidate
+                # Versuch 2: domain.stein_{asset_id}_{alias}
+                if asset_id:
+                    candidate2 = f"{domain}.stein_{asset_id}_{alias}"
+                    if candidate2 in all_entity_ids:
+                        return candidate2
+            # Versuch 3: Alle Entities dieser Domain durchsuchen
+            # und nach unique_id-Muster suchen
             for s in states:
-                if (s["entity_id"].startswith(f"{domain}.") and
-                        s["entity_id"].endswith(f"_{suffix}") and
-                        s.get("attributes", {}).get("asset_id") == asset_id):
-                    return s["entity_id"]
-            return candidate  # Fallback – existiert evtl. nicht
+                eid = s["entity_id"]
+                if not eid.startswith(f"{domain}."):
+                    continue
+                # Prüfe ob Entity zum selben Asset gehört (via Friendly Name)
+                fname = s.get("attributes", {}).get("friendly_name", "")
+                label = attrs.get("label", "")
+                for alias in aliases:
+                    if (f"stein_{asset_id}_{alias}" in eid or
+                            (label and f"_{alias}" in eid and label.lower().replace(" ","_") in eid)):
+                        return eid
+            # Fallback
+            return f"{domain}.{base}_{suffix}"
 
         assets.append({
             "sensor_id": sensor_id,

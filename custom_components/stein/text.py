@@ -14,12 +14,12 @@ from .sensor import _asset_device, _label_slug
 _LOGGER = logging.getLogger(__name__)
 
 _FIELDS = [
-    ("label",     "label",     "Bezeichnung",  255,   "mdi:tag",          None),
-    ("name",      "name",      "Name",         255,   "mdi:rename-box",   None),
-    ("comment",   "comment",   "Kommentar",  25000,   "mdi:comment-text", None),
-    ("category",  "category",  "Kategorie",     45,   "mdi:shape",        None),
-    ("radioname", "radioName", "Funkrufname",  255,   "mdi:radio",        None),
-    ("issi",      "issi",      "ISSI",         255,   "mdi:signal",       EntityCategory.CONFIG),
+    ("bezeichnung", "label",     "Bezeichnung",  255,   "mdi:tag",          None),
+    ("name",        "name",      "Name",         255,   "mdi:rename-box",   None),
+    ("kommentar",   "comment",   "Kommentar",  25000,   "mdi:comment-text", None),
+    ("kategorie",   "category",  "Kategorie",     45,   "mdi:shape",        None),
+    ("funkrufname", "radioName", "Funkrufname",  255,   "mdi:radio",        None),
+    ("issi",        "issi",      "ISSI",         255,   "mdi:signal",       EntityCategory.CONFIG),
 ]
 
 
