@@ -7,9 +7,9 @@ views:
   cards:
   - type: custom:mushroom-template-card
     primary: '{{ state_attr(''sensor.stein_bu_19'',''name'')|default(''THW OV'') }} ({{ state_attr(''sensor.stein_bu_19'',''code'')|default('''') }})'
-    secondary: '{% set r=state_attr(''sensor.stein_bu_19'',''stats_ready'')| int(0) %}{% set p=state_attr(''sensor.stein_bu_19'',''readiness_pct'')| int(0) %}{{ r }} Einsatzbereit · {{ p }}% · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'')|default('''') }}'
+    secondary: '{% set bu=''sensor.stein_bu_19'' %}{% set r=state_attr(bu,''stats_ready'') | int(0) if states(bu) not in [''unavailable'',''unknown'',''none''] else 0 %}{% set p=state_attr(bu,''readiness_pct'') | int(0) if states(bu) not in [''unavailable'',''unknown'',''none''] else 0 %}{{ r }} Einsatzbereit · {{ p }}% · {{ state_attr(''sensor.stein_api_stein_verbindung'',''email'')|default('''') }}'
     icon: mdi:home-group
-    icon_color: '{% set p=state_attr(''sensor.stein_bu_19'',''readiness_pct'')| int(0) %}{% if p>=75 %}green{% elif p>=50 %}orange{% else %}red{% endif %}'
+    icon_color: '{% set bu=''sensor.stein_bu_19'' %}{% set p=state_attr(bu,''readiness_pct'') | int(0) if states(bu) not in [''unavailable'',''unknown'',''none''] else 0 %}{% if p>=75 %}green{% elif p>=50 %}orange{% else %}red{% endif %}'
     tap_action:
       action: fire-dom-event
       browser_mod:
