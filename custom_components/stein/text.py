@@ -62,7 +62,7 @@ class SteinAssetTextField(CoordinatorEntity[SteinCoordinator], TextEntity):
         label = asset.get("label") or f"asset_{asset_id}"
         slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_text_{field_suffix}"
-        self.entity_id = f"text.stein_{slug}_{field_suffix}"
+        self.entity_id = f"text.stein_{asset_id}_{field_suffix}"
 
     @property
     def _asset(self) -> dict:

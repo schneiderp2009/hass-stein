@@ -92,20 +92,21 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 
 | Entität | Typ | Beschreibung |
 |---|---|---|
-| `sensor.<label>_status` | Sensor | Status + alle Felder als Attribute |
-| `select.<label>_status_setzen` | Select | Status umschalten |
-| `text.<label>_bezeichnung` | Text | Kurzbezeichnung bearbeiten |
-| `text.<label>_name` | Text | Vollname / Kennzeichen bearbeiten |
-| `text.<label>_kommentar` | Text | Kommentar bearbeiten |
-| `text.<label>_kategorie` | Text | Kategorie bearbeiten |
-| `text.<label>_funkrufname` | Text | Funkrufname bearbeiten |
-| `text.<label>_issi` | Text | ISSI (Digitalfunk) bearbeiten |
-| `switch.<label>_einsatzreservierung` | Switch | Einsatzreservierung an/aus |
+| `sensor.stein_{asset_id}_status` | Sensor | Status + alle Felder als Attribute |
+| `select.stein_{asset_id}_status_setzen` | Select | Status umschalten |
+| `text.stein_{asset_id}_bezeichnung` | Text | Kurzbezeichnung bearbeiten |
+| `text.stein_{asset_id}_name` | Text | Vollname / Kennzeichen bearbeiten |
+| `text.stein_{asset_id}_kommentar` | Text | Kommentar bearbeiten |
+| `text.stein_{asset_id}_kategorie` | Text | Kategorie bearbeiten |
+| `text.stein_{asset_id}_funkrufname` | Text | Funkrufname bearbeiten |
+| `text.stein_{asset_id}_issi` | Text | ISSI (Digitalfunk) bearbeiten |
+| `switch.stein_{asset_id}_einsatzreservierung` | Switch | Einsatzreservierung an/aus |
 
 **Global:**
 
 | Entität | Typ | Beschreibung |
 |---|---|---|
+| `sensor.stein_bu_{bu_id}` | Sensor | Ortsverband-Daten, Statistiken, Kontakt |
 | `sensor.stein_api_stein_verbindung` | Sensor | Aktiver API-Nutzer, Scope, Berechtigungen |
 
 ---

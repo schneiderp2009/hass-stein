@@ -39,7 +39,7 @@ class SteinOperationReservationSwitch(CoordinatorEntity[SteinCoordinator], Switc
         label = asset.get("label") or f"asset_{asset_id}"
         slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_switch_opreservation"
-        self.entity_id = f"switch.stein_{slug}_einsatzreservierung"
+        self.entity_id = f"switch.stein_{asset_id}_einsatzreservierung"
 
     @property
     def _asset(self) -> dict:

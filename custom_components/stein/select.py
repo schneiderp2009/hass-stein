@@ -42,7 +42,7 @@ class SteinAssetStatusSelect(CoordinatorEntity[SteinCoordinator], SelectEntity):
         label = asset.get("label") or f"asset_{asset_id}"
         slug = _label_slug(label)
         self._attr_unique_id = f"stein_asset_{asset_id}_select_status"
-        self.entity_id = f"select.stein_{slug}_status_setzen"
+        self.entity_id = f"select.stein_{asset_id}_status_setzen"
 
     @property
     def _asset(self) -> dict:

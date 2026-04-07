@@ -19,7 +19,7 @@ import yaml
 HA_URL    = "http://localhost:8123"
 TOKEN_FILE = "/config/scripts/stein_token.txt"   # Long-Lived Access Token
 DASHBOARD_FILE = "/config/dashboards/stein.yaml" # Ausgabedatei
-BU_SENSOR = "sensor.schwabisch_gmund_fahrzeuge_gesamt"
+# BU_SENSOR wird dynamisch aus bu_id abgeleitet: sensor.stein_bu_{bu_id}
 VERBINDUNG = "sensor.stein_api_stein_verbindung"
 FILTER_ENTITY = "input_select.stein_filter"
 
@@ -75,21 +75,23 @@ def find_assets(states):
                 "status_raw" in attrs and
                 "bu_id" in attrs):
             sl = entity_id.replace("sensor.", "").replace("_status", "")
+            aid = attrs.get("id") or attrs.get("asset_id")
             assets.append({
                 "entity_id": entity_id,
+                "asset_id": aid,
                 "slug": sl,
                 "label": attrs.get("label", sl),
                 "group": attrs.get("group_id", 99),
                 "bu_id": attrs.get("bu_id"),
-                "s":   entity_id,
-                "sel": f"select.{sl}_status_setzen",
-                "sw":  f"switch.{sl}_einsatzreservierung",
-                "tl":  f"text.{sl}_bezeichnung",
-                "tn":  f"text.{sl}_name",
-                "tr":  f"text.{sl}_funkrufname",
-                "tc":  f"text.{sl}_kommentar",
-                "tka": f"text.{sl}_kategorie",
-                "ti":  f"text.{sl}_issi",
+                "s":   f"sensor.stein_{aid}_status" if aid else entity_id,
+                "sel": f"select.stein_{aid}_status_setzen" if aid else f"select.{sl}_status_setzen",
+                "sw":  f"switch.stein_{aid}_einsatzreservierung" if aid else f"switch.{sl}_einsatzreservierung",
+                "tl":  f"text.stein_{aid}_bezeichnung" if aid else f"text.{sl}_bezeichnung",
+                "tn":  f"text.stein_{aid}_name" if aid else f"text.{sl}_name",
+                "tr":  f"text.stein_{aid}_funkrufname" if aid else f"text.{sl}_funkrufname",
+                "tc":  f"text.stein_{aid}_kommentar" if aid else f"text.{sl}_kommentar",
+                "tka": f"text.stein_{aid}_kategorie" if aid else f"text.{sl}_kategorie",
+                "ti":  f"text.stein_{aid}_issi" if aid else f"text.{sl}_issi",
                 "gn":  GROUP_NAMES.get(attrs.get("group_id", 99), f"Gruppe {attrs.get('group_id', 99)}"),
             })
     assets.sort(key=lambda a: (a["group"], a["label"]))
@@ -211,25 +213,28 @@ def popup(a):
 
 # ── Dashboard Builder ─────────────────────────────────────────────────────────
 
-def build_dashboard(assets):
+def build_dashboard(assets, bu_ids):
     groups = {}
     for a in assets:
         groups.setdefault(a["group"], []).append(a)
 
     cards = []
 
-    # BU Info
-    cards.append({
-        "type": "custom:mushroom-template-card",
-        "primary": (f"{{{{ state_attr('{BU_SENSOR}','name') | default('THW OV') }}}}"
-                    f" ({{{{ state_attr('{BU_SENSOR}','code') | default('') }}}})"),
-        "secondary": (f"{{% set r=state_attr('{BU_SENSOR}','stats_ready')|default(0)|int %}}"
-                      f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
-                      f"{{{{ r }}}} Einsatzbereit · {{{{ p }}}}%"
-                      f" · {{{{ state_attr('{VERBINDUNG}','email')|default('') }}}}"),
-        "icon": "mdi:home-group",
-        "icon_color": (f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
-                       f"{{% if p>=75 %}}green{{% elif p>=50 %}}orange{{% else %}}red{{% endif %}}"),
+    # BU Info – dynamisch pro BU-ID
+    for bu_id in bu_ids:
+        BU_SENSOR = f"sensor.stein_bu_{bu_id}"
+        bu_assets = [a for a in assets if a["bu_id"] == bu_id]
+        cards.append({
+            "type": "custom:mushroom-template-card",
+            "primary": (f"{{{{ state_attr('{BU_SENSOR}','name') | default('THW OV {bu_id}') }}}}"
+                        f" ({{{{ state_attr('{BU_SENSOR}','code') | default('') }}}})"),
+            "secondary": (f"{{% set r=state_attr('{BU_SENSOR}','stats_ready')|default(0)|int %}}"
+                          f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
+                          f"{{{{ r }}}} Einsatzbereit · {{{{ p }}}}%"
+                          f" · {{{{ state_attr('{VERBINDUNG}','email')|default('') }}}}"),
+            "icon": "mdi:home-group",
+            "icon_color": (f"{{% set p=state_attr('{BU_SENSOR}','readiness_pct')|default(0)|int %}}"
+                           f"{{% if p>=75 %}}green{{% elif p>=50 %}}orange{{% else %}}red{{% endif %}}"),
         "tap_action": {
             "action": "fire-dom-event",
             "browser_mod": {
@@ -278,7 +283,7 @@ def build_dashboard(assets):
                 }
             }
         }
-    })
+        })  # end bu card
 
     # Statuskacheln
     kacheln = []
@@ -402,7 +407,9 @@ def main():
         print("FEHLER: Keine STEIN-Assets gefunden. Integration geladen?")
         sys.exit(1)
 
-    dashboard = build_dashboard(assets)
+    bu_ids = sorted(set(a["bu_id"] for a in assets if a["bu_id"]))
+    print(f"Gefundene BU-IDs: {bu_ids}")
+    dashboard = build_dashboard(assets, bu_ids)
 
     os.makedirs(os.path.dirname(DASHBOARD_FILE), exist_ok=True)
     output = yaml.dump(dashboard, allow_unicode=True, sort_keys=False,
