@@ -1,32 +1,40 @@
 # STEIN Dashboard Generator – Einrichtung
 
-## 1. Dateien kopieren
+## Übersicht
+
+Das Script `stein_dashboard_gen.py` liest alle STEIN-Asset-Entities direkt aus der
+Home Assistant State Machine und generiert daraus eine vollständige `dashboard.yaml`.
+
+**Vorteile:**
+- Keine hardcodierten Entity-IDs – funktioniert mit jedem OV und jeder HA-Installation
+- Neue Assets erscheinen automatisch nach erneutem Script-Aufruf
+- Erkennt sowohl alte als auch neue Entity-ID-Varianten automatisch
+
+---
+
+## Einrichtung
+
+### 1. Dateien kopieren
 
 ```bash
-cp /config/custom_components/stein/scripts/stein_dashboard_gen.py /config/scripts/
+cp scripts/stein_dashboard_gen.py /config/scripts/
+mkdir -p /config/dashboards
 ```
 
-## 2. Long-Lived Access Token erstellen
+### 2. Long-Lived Access Token erstellen
 
-1. HA öffnen → Profil (unten links) → "Langlebige Zugriffstoken"
+1. HA öffnen → Profil (unten links) → **Langlebige Zugriffstoken**
 2. Token erstellen → kopieren
-3. Speichern in `/config/scripts/stein_token.txt`
+3. Token speichern:
 
 ```bash
 echo "dein_token_hier" > /config/scripts/stein_token.txt
 chmod 600 /config/scripts/stein_token.txt
 ```
 
-## 3. Dashboard-Ordner anlegen
-
-```bash
-mkdir -p /config/dashboards
-```
-
-## 4. configuration.yaml ergänzen
+### 3. configuration.yaml ergänzen
 
 ```yaml
-# Dashboard als YAML-Datei registrieren
 lovelace:
   mode: storage
   dashboards:
@@ -37,11 +45,9 @@ lovelace:
       show_in_sidebar: true
       filename: dashboards/stein.yaml
 
-# Shell Command fuer Rebuild
 shell_command:
   stein_dashboard_rebuild: "python3 /config/scripts/stein_dashboard_gen.py"
 
-# input_select fuer Filter
 input_select:
   stein_filter:
     name: STEIN Filter
@@ -62,49 +68,71 @@ input_select:
     icon: mdi:filter
 ```
 
-## 5. HA neu starten
+### 4. HA neu starten
 
-## 6. Erstes Dashboard generieren
+### 5. Dashboard erstmalig generieren
 
-Entweder per SSH:
+Per SSH/Terminal:
 ```bash
 python3 /config/scripts/stein_dashboard_gen.py
 ```
 
-Oder in HA: Entwicklerwerkzeuge → Aktionen:
-```yaml
-action: shell_command.stein_dashboard_rebuild
+Oder in HA: **Entwicklerwerkzeuge → Aktionen → `shell_command.stein_dashboard_rebuild`**
+
+Das Script gibt eine Übersicht aller gefundenen Assets und ihrer Entity-IDs aus:
+```
+[1] GKW                → sensor.gkw_status
+     select: select.gkw_status_setzen
+     switch: switch.gkw_einsatzreservierung
+     text:   text.gkw_bezeichnung, text.gkw_kommentar
 ```
 
-## 7. Automatische Aktualisierung (optional)
+### 6. Automation einrichten (optional)
 
-In configuration.yaml oder automation.yaml:
+Damit das Dashboard automatisch aktualisiert wird wenn neue Assets in STEIN angelegt werden:
+
+In HA: **Einstellungen → Automationen → + Neue Automation → Als YAML bearbeiten**
 
 ```yaml
-automation:
-  - alias: "STEIN Dashboard auto-rebuild"
-    trigger:
-      - platform: event
-        event_type: entity_registry_updated
-        event_data:
-          action: create
-    condition:
-      - condition: template
-        value_template: "{{ 'stein' in trigger.event.data.get('entity_id','') }}"
-    action:
-      - delay: "00:00:05"
-      - service: shell_command.stein_dashboard_rebuild
+alias: "STEIN Dashboard auto-rebuild"
+trigger:
+  - platform: event
+    event_type: entity_registry_updated
+    event_data:
+      action: create
+condition:
+  - condition: template
+    value_template: "{{ 'stein' in trigger.event.data.get('entity_id','') }}"
+action:
+  - delay: "00:00:10"
+  - service: shell_command.stein_dashboard_rebuild
+  - service: persistent_notification.create
+    data:
+      title: "STEIN Dashboard"
+      message: "Dashboard wurde automatisch aktualisiert – bitte Seite neu laden (F5)."
+      notification_id: "stein_dashboard_rebuild"
 ```
 
-## Funktionsweise
+---
 
-Das Script:
-1. Fragt alle States von HA ab (REST API)
-2. Findet alle `sensor.*_status` Entities mit `status_raw` + `bu_id` Attribut
-3. Gruppiert nach `group_id`
-4. Generiert komplettes Dashboard YAML mit Filtern, Popups, Bearbeitungsfeldern
-5. Speichert nach `/config/dashboards/stein.yaml`
+## Manuelles Dashboard aktualisieren
 
-Das Dashboard wird automatisch aktualisiert wenn neue Assets in STEIN hinzukommen
-und das Script erneut ausgeführt wird – entweder manuell per Button im Dashboard
-oder automatisch per Automation.
+Wenn neue Assets in STEIN hinzugekommen sind:
+
+1. Script ausführen (per SSH oder Dashboard-Button):
+   ```bash
+   python3 /config/scripts/stein_dashboard_gen.py
+   ```
+2. Browser neu laden (F5)
+
+---
+
+## Konfiguration im Script anpassen
+
+Oben im Script `stein_dashboard_gen.py` können folgende Werte angepasst werden:
+
+```python
+HA_URL         = "http://localhost:8123"   # HA-Adresse
+TOKEN_FILE     = "/config/scripts/stein_token.txt"
+DASHBOARD_FILE = "/config/dashboards/stein.yaml"
+```

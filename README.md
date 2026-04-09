@@ -24,7 +24,8 @@
 | 🔖 | **Einsatzreservierung** | Ein/Aus per Toggle-Schalter |
 | 👤 | **Verbindungsstatus** | Sensor zeigt aktiven API-Nutzer und Zugriffsrechte |
 | ⚙️ | **Service** | Alle Felder per Automation oder Skript änderbar |
-| 🔁 | **Auto-Discovery** | Neue Assets werden automatisch erkannt |
+| 🔁 | **Auto-Discovery** | Neue Assets werden automatisch erkannt und als Entities angelegt |
+| 🔄 | **Dashboard-Generator** | Script generiert das Dashboard automatisch aus den echten Entity-IDs |
 | 🔒 | **Rate-Limit-Schutz** | 429-Fehler werden automatisch mit Retry behandelt |
 
 ---
@@ -38,13 +39,11 @@
 
 ### HACS Frontend-Erweiterungen (für das Dashboard)
 
-Folgende Custom Cards müssen über HACS installiert sein:
-
-| Card | Beschreibung | HACS Link |
-|---|---|---|
-| **Mushroom Cards** | Moderne Karten für Status, Templates, Chips | `lovelace-mushroom` |
-| **browser_mod** | Popup-Funktionalität für Asset-Details | `browser_mod` |
-| **card-mod** | CSS-Anpassungen für Filter-Sichtbarkeit | `lovelace-card-mod` |
+| Card | Beschreibung |
+|---|---|
+| **Mushroom Cards** (`lovelace-mushroom`) | Moderne Karten für Status, Templates, Chips |
+| **browser_mod** | Popup-Funktionalität für Asset-Details |
+| **card-mod** (`lovelace-card-mod`) | CSS-Anpassungen für Filter-Sichtbarkeit |
 
 Installation: HACS → Frontend → Suchen → Installieren → HA neu starten
 
@@ -63,7 +62,7 @@ Installation: HACS → Frontend → Suchen → Installieren → HA neu starten
 ### Manuell
 
 ```bash
-cp -r custom_components/stein/ config/custom_components/stein/
+cp -r custom_components/stein/ /config/custom_components/stein/
 ```
 
 Home Assistant neu starten.
@@ -92,15 +91,17 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 
 | Entität | Typ | Beschreibung |
 |---|---|---|
-| `sensor.stein_{asset_id}_status` | Sensor | Status + alle Felder als Attribute |
-| `select.stein_{asset_id}_status_setzen` | Select | Status umschalten |
-| `text.stein_{asset_id}_bezeichnung` | Text | Kurzbezeichnung bearbeiten |
-| `text.stein_{asset_id}_name` | Text | Vollname / Kennzeichen bearbeiten |
-| `text.stein_{asset_id}_kommentar` | Text | Kommentar bearbeiten |
-| `text.stein_{asset_id}_kategorie` | Text | Kategorie bearbeiten |
-| `text.stein_{asset_id}_funkrufname` | Text | Funkrufname bearbeiten |
-| `text.stein_{asset_id}_issi` | Text | ISSI (Digitalfunk) bearbeiten |
-| `switch.stein_{asset_id}_einsatzreservierung` | Switch | Einsatzreservierung an/aus |
+| `sensor.{slug}_status` | Sensor | Status + alle Felder als Attribute |
+| `select.{slug}_status_setzen` | Select | Status umschalten |
+| `text.{slug}_bezeichnung` | Text | Kurzbezeichnung bearbeiten |
+| `text.{slug}_name` | Text | Vollname / Kennzeichen bearbeiten |
+| `text.{slug}_kommentar` | Text | Kommentar bearbeiten |
+| `text.{slug}_kategorie` | Text | Kategorie bearbeiten |
+| `text.{slug}_funkrufname` | Text | Funkrufname bearbeiten |
+| `text.{slug}_issi` | Text | ISSI (Digitalfunk) bearbeiten |
+| `switch.{slug}_einsatzreservierung` | Switch | Einsatzreservierung an/aus |
+
+> Der `{slug}` wird von HA aus dem Gerätenamen und Entity-Namen generiert, z.B. `gkw` für „GKW".
 
 **Global:**
 
@@ -113,25 +114,39 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 
 ### 📌 Status-Werte
 
-| API-Wert | Anzeige |
-|---|---|
-| `ready` | Einsatzbereit |
-| `notready` | Nicht einsatzbereit |
-| `semiready` | Bedingt einsatzbereit |
-| `inuse` | Im Einsatz |
-| `maint` | In Wartung |
+| API-Wert | Anzeige | Symbol |
+|---|---|---|
+| `ready` | Einsatzbereit | ✅ grün |
+| `notready` | Nicht einsatzbereit | ❌ rot |
+| `semiready` | Bedingt einsatzbereit | ⚠️ orange |
+| `inuse` | Im Einsatz | 🚒 blau |
+| `maint` | In Wartung | 🔧 lila |
 
 ---
 
 ## 📊 Dashboard einrichten
 
-Das mitgelieferte `dashboard.yaml` bietet eine vollständige Übersicht mit Filter, Gruppen und Asset-Popups.
+Das Dashboard wird über ein Python-Script dynamisch generiert – es liest die echten Entity-IDs direkt aus HA und erstellt eine vollständige `dashboard.yaml` mit Filtern, Gruppen und Popups.
 
-### Voraussetzung: Filter-Helfer anlegen
-
-Füge folgenden Block in `/config/configuration.yaml` ein (Inhalt aus `input_select.yaml`):
+### Schritt 1: configuration.yaml ergänzen
 
 ```yaml
+# Dashboard als YAML-Datei einbinden
+lovelace:
+  mode: storage
+  dashboards:
+    stein-dashboard:
+      mode: yaml
+      title: STEIN
+      icon: mdi:home-group
+      show_in_sidebar: true
+      filename: dashboards/stein.yaml
+
+# Shell Command für Dashboard-Rebuild
+shell_command:
+  stein_dashboard_rebuild: "python3 /config/scripts/stein_dashboard_gen.py"
+
+# Filter-Helfer für das Dashboard
 input_select:
   stein_filter:
     name: STEIN Filter
@@ -152,12 +167,54 @@ input_select:
     icon: mdi:filter
 ```
 
-### Dashboard importieren
+### Schritt 2: Script und Token einrichten
 
-1. **Einstellungen → Dashboards → + Dashboard hinzufügen**
-2. Name: `STEIN`, Icon: `mdi:fire-truck`
-3. Dashboard öffnen → **3-Punkte-Menü → Rohkonfiguration bearbeiten**
-4. Inhalt von `dashboard.yaml` einfügen → Speichern
+```bash
+# Script kopieren
+cp scripts/stein_dashboard_gen.py /config/scripts/
+
+# Long-Lived Access Token erstellen:
+# HA → Profil → Langlebige Zugriffstoken → Token erstellen → kopieren
+echo "DEIN_TOKEN_HIER" > /config/scripts/stein_token.txt
+chmod 600 /config/scripts/stein_token.txt
+
+# Dashboard-Ordner anlegen
+mkdir -p /config/dashboards
+```
+
+### Schritt 3: HA neu starten
+
+### Schritt 4: Dashboard erstmalig generieren
+
+```bash
+python3 /config/scripts/stein_dashboard_gen.py
+```
+
+Oder in HA: **Entwicklerwerkzeuge → Aktionen → `shell_command.stein_dashboard_rebuild`**
+
+### Schritt 5: Automation einrichten (optional)
+
+In HA unter **Einstellungen → Automationen → + Neue Automation → Als YAML bearbeiten**:
+
+```yaml
+alias: "STEIN Dashboard auto-rebuild"
+trigger:
+  - platform: event
+    event_type: entity_registry_updated
+    event_data:
+      action: create
+condition:
+  - condition: template
+    value_template: "{{ 'stein' in trigger.event.data.get('entity_id','') }}"
+action:
+  - delay: "00:00:10"
+  - service: shell_command.stein_dashboard_rebuild
+  - service: persistent_notification.create
+    data:
+      title: "STEIN Dashboard"
+      message: "Dashboard wurde automatisch aktualisiert – bitte Seite neu laden (F5)."
+      notification_id: "stein_dashboard_rebuild"
+```
 
 ---
 
@@ -168,15 +225,15 @@ Alle Felder eines Assets per Automation oder Skript ändern:
 ```yaml
 service: stein.update_asset
 data:
-  asset_id: 42
+  asset_id: 340
   status: inuse
-  label: "LF 1"
-  name: "Löschfahrzeug"
+  label: "GKW"
+  name: "THW-12345"
   comment: "Im Einsatz"
   category: "Fahrzeug"
-  radio_name: "Florian 1-42"
+  radio_name: "22/51"
   issi: "1234567"
-  sort_order: 10
+  sort_order: 1
   operation_reservation: true
   hu_valid_until: "2027-06-30T00:00:00Z"
   notify_radio: false
@@ -227,13 +284,22 @@ action:
 ```bash
 curl -H "Authorization: Bearer TOKEN" https://stein.app/api/api/ext/userinfo
 ```
-IP muss aus Deutschland sein – STEIN sperrt ausländische IPs mit HTTP 404.
+IP muss aus Deutschland sein – STEIN sperrt ausländische IPs.
 
 **`429 Too Many Requests`:**
-Die Integration wartet automatisch 65 Sekunden und versucht es erneut. Falls es wiederholt auftritt: Abfrageintervall unter **Konfigurieren** erhöhen (mindestens 300 Sekunden empfohlen).
+Die Integration wartet automatisch 65 Sekunden und versucht es erneut. Abfrageintervall unter **Konfigurieren** erhöhen falls es wiederholt auftritt (mindestens 300 Sekunden empfohlen).
 
 **Popup öffnet sich nicht:**
-Sicherstellen dass `browser_mod` korrekt installiert und in HA registriert ist. Nach der Installation von `browser_mod` muss HA einmal neu gestartet werden.
+Sicherstellen dass `browser_mod` korrekt installiert und in HA registriert ist. Nach der Installation einmal HA neu starten.
+
+**Felder im Popup zeigen „unavailable":**
+Das Dashboard-Generator-Script neu ausführen – es liest die aktuellen Entity-IDs aus HA:
+```bash
+python3 /config/scripts/stein_dashboard_gen.py
+```
+
+**Dashboard zeigt alle Assets als „unknown":**
+Die Integration wurde neu eingerichtet und die Entity-IDs haben sich geändert. Generator-Script neu ausführen.
 
 **Debug-Logging aktivieren** – in `configuration.yaml`:
 ```yaml
