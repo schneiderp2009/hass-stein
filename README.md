@@ -54,7 +54,7 @@ Installation: HACS → Frontend → Suchen → Installieren → HA neu starten
 ### Via HACS (empfohlen)
 
 1. HACS öffnen → **Integrationen** → Menü oben rechts → **Benutzerdefinierte Repositories**
-2. URL eintragen: `https://github.com/DEIN_USERNAME/hass-stein`
+2. URL eintragen: `https://github.com/schneiderp2009/hass-stein`
 3. Kategorie: **Integration** → Hinzufügen
 4. Integration suchen → **Installieren**
 5. Home Assistant neu starten
