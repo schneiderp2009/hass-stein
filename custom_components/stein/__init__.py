@@ -22,7 +22,8 @@ from .coordinator import SteinCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "select", "text", "switch"]
+# report_sensor entities are registered via sensor.py (same HA platform)
+PLATFORMS = ["sensor", "select", "text", "switch", "binary_sensor"]
 
 SERVICE_UPDATE_ASSET = "update_asset"
 SERVICE_UPDATE_ASSET_SCHEMA = vol.Schema(
@@ -42,7 +43,6 @@ SERVICE_UPDATE_ASSET_SCHEMA = vol.Schema(
     }
 )
 
-# Mapping: Service-Feldname → API-Feldname
 _FIELD_MAP = {
     "status": "status",
     "label": "label",
@@ -75,12 +75,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # --- Service: update_asset ---
     async def handle_update_asset(call: ServiceCall) -> None:
         asset_id = call.data["asset_id"]
         notify_radio = call.data.get("notify_radio", False)
 
-        # Start with all current values from cache (API requires buId, label, groupId)
         cached = coordinator.assets.get(asset_id, {})
         payload: dict = {
             "buId": cached.get("buId"),
@@ -89,13 +87,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "status": cached.get("status", "ready"),
         }
 
-        # Optionally copy other existing fields
         for api_field in ("name", "comment", "category", "radioName", "issi",
                           "sortOrder", "operationReservation", "huValidUntil"):
             if api_field in cached:
                 payload[api_field] = cached[api_field]
 
-        # Override with values from the service call
         for svc_field, api_field in _FIELD_MAP.items():
             if svc_field in call.data:
                 payload[api_field] = call.data[svc_field]

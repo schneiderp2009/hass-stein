@@ -41,7 +41,6 @@ class SteinApi:
         }
 
     async def _get(self, path: str, params: Any = None) -> Any:
-        # Correct URL: https://stein.app/api + /api/ext/... = https://stein.app/api/api/ext/...
         url = f"{self._base}{path}"
         _LOGGER.debug("STEIN GET %s params=%s", url, params)
         try:
@@ -103,6 +102,14 @@ class SteinApi:
 
     async def get_bu(self, bu_id: int) -> dict | None:
         return await self._get(f"/api/ext/bu/{bu_id}")
+
+    async def get_reports(self, updated_since: int) -> list[dict]:
+        """Fetch all reports updated since the given UNIX timestamp."""
+        result = await self._get(
+            "/api/ext/reports/full",
+            params={"updatedSince": updated_since},
+        )
+        return result or []
 
     async def test_connection(self) -> bool:
         _LOGGER.debug("STEIN testing connection to %s", self._base)

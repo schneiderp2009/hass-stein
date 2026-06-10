@@ -37,3 +37,26 @@ STATUS_LABELS = {
     STATUS_INUSE: "Im Einsatz",
     STATUS_MAINT: "In Wartung",
 }
+
+# ── Reports ────────────────────────────────────────────────────────────────────
+
+# HA event names fired by the integration
+EVENT_STEIN_NEW_REPORT     = "stein_new_report"
+EVENT_STEIN_UPDATED_REPORT = "stein_updated_report"
+EVENT_STEIN_CLOSED_REPORT  = "stein_report_closed"
+
+# artTechUnterstuetzung labels
+ART_LABELS = {
+    "amtshilfe": "Amtshilfe",
+    "sonstige":  "Sonstige",
+    "unbekannt": "Unbekannt",
+}
+
+# vorEinsatzendeHours labels
+VORENDE_LABELS = {
+    "6h":       "ca. 6 Stunden",
+    "12h":      "ca. 12 Stunden",
+    "24h":      "ca. 24 Stunden",
+    "unbekannt":"Unbekannt",
+    "tage":     "Mehrere Tage",
+}
