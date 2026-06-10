@@ -104,10 +104,16 @@ class SteinApi:
         return await self._get(f"/api/ext/bu/{bu_id}")
 
     async def get_reports(self, updated_since: int) -> list[dict]:
-        """Fetch all reports updated since the given UNIX timestamp."""
+        """Fetch all reports updated since the given timestamp.
+
+        The API accepts an ISO 8601 datetime string (e.g. 2019-08-24T14:15:22Z).
+        We convert the UNIX timestamp to that format.
+        """
+        from datetime import datetime, timezone
+        iso = datetime.fromtimestamp(updated_since, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         result = await self._get(
             "/api/ext/reports/full",
-            params={"updatedSince": updated_since},
+            params={"updatedSince": iso},
         )
         return result or []
 
