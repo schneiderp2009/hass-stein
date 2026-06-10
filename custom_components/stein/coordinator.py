@@ -37,6 +37,8 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.reports: dict[int, dict] = {}
         # Timestamp of last successful reports fetch (UNIX)
         self._reports_last_fetched: int = 0
+        # Set to True after a 403 – stops further report fetching until HA restart
+        self.reports_permission_denied: bool = False
 
         self._refresh_count = 0
 
@@ -53,11 +55,23 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 except SteinApiError as retry_err:
                     _LOGGER.warning("STEIN retry failed for %s: %s", description, retry_err)
                     return None
+            if "403" in str(err):
+                # 403 = fehlende Berechtigung (Headquarter-Level erforderlich)
+                # Kein Warning-Spam – einmalig loggen, danach nicht mehr versuchen
+                if description == "reports":
+                    _LOGGER.info(
+                        "STEIN: Reports-API nicht verfügbar (HTTP 403 – Headquarter-Berechtigung "
+                        "erforderlich). Report-Funktionen deaktiviert."
+                    )
+                    self.reports_permission_denied = True
+                return None
             _LOGGER.warning("STEIN error on %s: %s", description, err)
             return None
 
     async def _fetch_reports(self) -> None:
         """Fetch reports, detect new/updated/closed ones and fire HA events."""
+        if self.reports_permission_denied:
+            return  # 403 bereits erhalten – kein weiterer Versuch
         now = int(time.time())
 
         # On first fetch, look back a full year to catch all active reports
