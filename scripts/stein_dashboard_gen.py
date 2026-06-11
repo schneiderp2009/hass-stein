@@ -564,23 +564,25 @@ def build_assets_view(assets, states):
         }
     })
 
-    # Gruppen + Assets
+    # Gruppen + Assets – jede Gruppe als vertical-stack Card
     for gid in sorted(groups.keys()):
         gname = GROUP_NAMES.get(gid, f"Gruppe {gid}")
         gassets = groups[gid]
 
-        cards.append({
-            "type": "custom:mushroom-title-card",
-            "title": gname,
-            "card_mod": {
-                "style": f":host {{ display: {{{{ 'block' if {show_group(gassets, gname)} else 'none' }}}}; }}"
-            }
-        })
+        group_icon_map = {
+            "Fahrzeuge":        "mdi:fire-truck",
+            "Geraete":          "mdi:tools",
+            "Sonderfunktionen": "mdi:star",
+            "Einheiten":        "mdi:account-group",
+            "Anhaenger":        "mdi:truck-trailer",
+        }
+        group_icon = group_icon_map.get(gname, "mdi:folder")
 
+        asset_cards = []
         for a in gassets:
             s = a["s"]
             gn = a["gn"]
-            cards.append({
+            asset_cards.append({
                 "type": "custom:mushroom-template-card",
                 "entity": s,
                 "primary": (
@@ -608,6 +610,22 @@ def build_assets_view(assets, states):
                     "style": f":host {{ display: {{{{ 'block' if {show_asset(s, gn)} else 'none' }}}}; }}"
                 }
             })
+
+        # Gruppe als vertical-stack: Titel + alle Asset-Karten in einer Box
+        cards.append({
+            "type": "vertical-stack",
+            "cards": [
+                {
+                    "type": "custom:mushroom-title-card",
+                    "title": gname,
+                    "icon": group_icon,
+                },
+                *asset_cards,
+            ],
+            "card_mod": {
+                "style": f":host {{ display: {{{{ 'block' if {show_group(gassets, gname)} else 'none' }}}}; }}"
+            }
+        })
 
     return {
         "title": "Assets",
