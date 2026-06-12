@@ -93,9 +93,9 @@ async def async_setup_entry(
         if new_entities:
             async_add_entities(new_entities)
 
-        known_asset_ids.update(set(coordinator.assets.keys()) - known_asset_ids)
-        known_bu_ids.update(set(coordinator.bus.keys()) - known_bu_ids)
-        known_report_ids.update(current_active_reports - known_report_ids)
+        known_asset_ids.update(coordinator.assets.keys())
+        known_bu_ids.update(coordinator.bus.keys())
+        known_report_ids = current_active_reports
 
     coordinator.async_add_listener(_handle_update)
 
@@ -241,13 +241,17 @@ class SteinBuSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         bu = self._bu
         counts: dict[str, int] = {}
+        total = 0
+        ready = 0
         for a in self.coordinator.assets.values():
-            if a.get("buId") == self._bu_id:
-                s = a.get("status", "unknown")
-                counts[STATUS_LABELS.get(s, s)] = counts.get(STATUS_LABELS.get(s, s), 0) + 1
-        total = self.state
-        ready = sum(1 for a in self.coordinator.assets.values()
-                    if a.get("buId") == self._bu_id and a.get("status") == "ready")
+            if a.get("buId") != self._bu_id:
+                continue
+            total += 1
+            s = a.get("status", "unknown")
+            if s == "ready":
+                ready += 1
+            label = STATUS_LABELS.get(s, s)
+            counts[label] = counts.get(label, 0) + 1
         stats = bu.get("stats", {})
         return {
             "id":           bu.get("id"),

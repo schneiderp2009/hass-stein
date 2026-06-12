@@ -42,17 +42,22 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._refresh_count = 0
 
-    async def _safe_get(self, coro, description: str):
-        """Run a coroutine, wait and retry once on 429."""
+    async def _safe_get(self, coro_factory, description: str, raises: bool = False):
+        """Run a coroutine factory, wait and retry once on 429.
+
+        raises=True: non-recoverable errors become UpdateFailed instead of None.
+        """
         try:
-            return await coro
+            return await coro_factory()
         except SteinApiError as err:
             if "429" in str(err):
                 _LOGGER.warning("STEIN 429 on %s – waiting %ss", description, _RATE_LIMIT_DELAY)
                 await asyncio.sleep(_RATE_LIMIT_DELAY)
                 try:
-                    return await coro
+                    return await coro_factory()
                 except SteinApiError as retry_err:
+                    if raises:
+                        raise UpdateFailed(f"STEIN {description} failed after retry: {retry_err}") from retry_err
                     _LOGGER.warning("STEIN retry failed for %s: %s", description, retry_err)
                     return None
             if "403" in str(err):
@@ -65,6 +70,8 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                     self.reports_permission_denied = True
                 return None
+            if raises:
+                raise UpdateFailed(f"STEIN {description} error: {err}") from err
             _LOGGER.warning("STEIN error on %s: %s", description, err)
             return None
 
@@ -84,7 +91,7 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("STEIN fetching reports updated since %s", updated_since)
 
         raw = await self._safe_get(
-            self.api.get_reports(updated_since), "reports"
+            lambda: self.api.get_reports(updated_since), "reports"
         )
         if raw is None:
             return
@@ -126,8 +133,11 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             _report_event_data(report),
                         )
 
-        # Merge new data into self.reports
+        # Merge new data into self.reports, then drop finished ones to prevent unbounded growth.
+        # Events are fired above before this point, so the transition is already captured.
         self.reports.update(new_report_map)
+        for rid in [rid for rid, r in self.reports.items() if r.get("finished", False)]:
+            del self.reports[rid]
 
     async def _send_persistent_notification(self, report: dict, new: bool) -> None:
         """Create or update a persistent notification for an active report."""
@@ -176,18 +186,9 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._refresh_count > 1:
             await asyncio.sleep(1)
 
-        try:
-            raw_assets = await self.api.get_assets(self.bu_ids)
-        except SteinApiError as err:
-            if "429" in str(err):
-                _LOGGER.warning("STEIN 429 on assets – waiting %ss", _RATE_LIMIT_DELAY)
-                await asyncio.sleep(_RATE_LIMIT_DELAY)
-                try:
-                    raw_assets = await self.api.get_assets(self.bu_ids)
-                except SteinApiError as retry_err:
-                    raise UpdateFailed(f"STEIN API error after retry: {retry_err}") from retry_err
-            else:
-                raise UpdateFailed(f"STEIN API error: {err}") from err
+        raw_assets = await self._safe_get(
+            lambda: self.api.get_assets(self.bu_ids), "assets", raises=True
+        )
 
         assets: dict[int, dict] = {}
         for asset in raw_assets:
@@ -199,12 +200,12 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if do_slow:
             await asyncio.sleep(2)
             for bu_id in self.bu_ids:
-                result = await self._safe_get(self.api.get_bu(bu_id), f"BU {bu_id}")
+                result = await self._safe_get(lambda: self.api.get_bu(bu_id), f"BU {bu_id}")
                 if result:
                     self.bus[bu_id] = result
                 await asyncio.sleep(2)
 
-            result = await self._safe_get(self.api.get_userinfo(), "userinfo")
+            result = await self._safe_get(lambda: self.api.get_userinfo(), "userinfo")
             if result:
                 self.userinfo = result
 

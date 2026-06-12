@@ -1,7 +1,6 @@
 """STEIN API client."""
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -54,8 +53,7 @@ class SteinApi:
                     return None
                 if resp.status >= 400:
                     raise SteinApiError(f"HTTP {resp.status}")
-                text = await resp.text()
-                return json.loads(text)
+                return await resp.json(content_type=None)
         except (SteinAuthError, SteinApiError):
             raise
         except Exception as err:
@@ -77,7 +75,7 @@ class SteinApi:
                     raise SteinAuthError("Invalid API token")
                 if resp.status >= 400:
                     raise SteinApiError(f"HTTP {resp.status}")
-                return json.loads(await resp.text())
+                return await resp.json(content_type=None)
         except (SteinAuthError, SteinApiError):
             raise
         except Exception as err:

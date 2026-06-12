@@ -30,7 +30,7 @@ async def async_setup_webhook(
         # Validate secret if configured
         if webhook_secret:
             secret_header = request.headers.get("X-Secret", "")
-            if secret_header != webhook_secret:
+            if not hmac.compare_digest(secret_header, webhook_secret):
                 _LOGGER.warning("STEIN webhook: invalid secret received")
                 return web.Response(status=401)
 
