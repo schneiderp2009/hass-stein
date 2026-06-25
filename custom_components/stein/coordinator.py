@@ -8,9 +8,10 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SteinApi, SteinApiError
+from .api import SteinApi, SteinApiError, SteinAuthError
 from .const import DOMAIN, EVENT_STEIN_NEW_REPORT, EVENT_STEIN_UPDATED_REPORT, EVENT_STEIN_CLOSED_REPORT
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,6 +50,11 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         try:
             return await coro_factory()
+        except SteinAuthError as err:
+            # Token ungültig/abgelaufen – HA startet automatisch den Reauth-Flow
+            # (via async_step_reauth in config_flow.py), Integration muss dafür
+            # NICHT gelöscht werden.
+            raise ConfigEntryAuthFailed(f"STEIN {description} error: Invalid API token") from err
         except SteinApiError as err:
             if "429" in str(err):
                 _LOGGER.warning("STEIN 429 on %s – waiting %ss", description, _RATE_LIMIT_DELAY)
