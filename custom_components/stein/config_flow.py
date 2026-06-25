@@ -84,6 +84,50 @@ class SteinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.OptionsFlow:
         return SteinOptionsFlow()
 
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> config_entries.FlowResult:
+        """Wird von HA automatisch gestartet, wenn der Coordinator
+        ConfigEntryAuthFailed wirft (z.B. Token abgelaufen/zurückgezogen)."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Neuen Token abfragen und bestehenden Config Entry aktualisieren."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            token = user_input[CONF_API_TOKEN].strip()
+            reauth_entry = self._get_reauth_entry()
+
+            session = async_get_clientsession(self.hass)
+            api = SteinApi(token, session)
+            try:
+                valid = await api.test_connection()
+                if not valid:
+                    errors["base"] = "cannot_connect"
+            except SteinAuthError:
+                errors["base"] = "invalid_auth"
+            except SteinApiError as err:
+                _LOGGER.error("STEIN reauth connection error: %s", err)
+                errors["base"] = "cannot_connect"
+            except Exception as err:
+                _LOGGER.exception("Unexpected error during STEIN reauth: %s", err)
+                errors["base"] = "unknown"
+
+            if not errors:
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data={**reauth_entry.data, CONF_API_TOKEN: token},
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
+            errors=errors,
+        )
+
 
 class SteinOptionsFlow(config_entries.OptionsFlow):
     """Options flow – only scan interval."""
