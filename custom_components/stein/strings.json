@@ -8,6 +8,13 @@
           "api_token": "API Bearer Token",
           "bu_ids": "BU-IDs (kommagetrennt, z.B. 1,2,3)"
         }
+      },
+      "reauth_confirm": {
+        "title": "STEIN – Neuer API Token erforderlich",
+        "description": "Der gespeicherte API Token ist ungültig oder abgelaufen. Bitte neuen Token eingeben.",
+        "data": {
+          "api_token": "API Bearer Token"
+        }
       }
     },
     "error": {
@@ -17,7 +24,8 @@
       "unknown": "Unbekannter Fehler"
     },
     "abort": {
-      "already_configured": "STEIN ist bereits konfiguriert"
+      "already_configured": "STEIN ist bereits konfiguriert",
+      "reauth_successful": "Erneute Authentifizierung erfolgreich"
     }
   },
   "options": {
