@@ -44,23 +44,21 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._reports_last_fetched: int = 0
         # Set to True after a 403 – stops further report fetching until HA restart
         self.reports_permission_denied: bool = False
-        # Set after STEIN rejected updatedSince with HTTP 400
-        self._reports_omit_since: bool = False
 
         self._refresh_count = 0
+        # Last payload received via STEIN webhook (for inspection)
+        self.last_webhook: dict | None = None
+        self.webhook_url: str | None = None
 
     async def _safe_get(
         self,
         coro_factory,
         description: str,
         raises: bool = False,
-        reraise_400: bool = False,
     ):
         """Run a coroutine factory, wait and retry once on 429.
 
         raises=True: non-recoverable errors become UpdateFailed instead of None.
-        reraise_400=True: an HTTP 400 is re-raised as SteinApiError so the
-        caller can retry with different parameters.
         """
         try:
             return await coro_factory()
@@ -70,8 +68,6 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # NICHT gelöscht werden.
             raise ConfigEntryAuthFailed(f"STEIN {description} error: Invalid API token") from err
         except SteinApiError as err:
-            if reraise_400 and err.status == 400:
-                raise
             if err.status == 429:
                 _LOGGER.warning("STEIN 429 on %s – waiting %ss", description, _RATE_LIMIT_DELAY)
                 await asyncio.sleep(_RATE_LIMIT_DELAY)
@@ -83,13 +79,16 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     _LOGGER.warning("STEIN retry failed for %s: %s", description, retry_err)
                     return None
             if err.status == 403:
-                # 403 = fehlende Berechtigung für diesen Endpunkt.
-                # Kein Warning-Spam – einmalig loggen, danach nicht mehr versuchen
+                # Laut STEIN-API-Doku ist /reports/full nur mit
+                # Headquarter-Berechtigung nutzbar. Einmalig loggen, danach
+                # nicht mehr anfragen (bis Neustart/Neu-Laden der Integration).
                 if description == "reports":
-                    _LOGGER.warning(
-                        "STEIN: Einsatz-API nicht freigegeben (HTTP 403: %s). "
-                        "Einsatz-Funktionen deaktiviert bis zum Neustart.",
-                        err,
+                    scope = self.userinfo.get("scope") or "unbekannt"
+                    _LOGGER.info(
+                        "STEIN: Einsätze nicht abrufbar – der API-Key (Scope %s) hat keine "
+                        "Headquarter-Berechtigung, die STEIN für /reports/full verlangt. "
+                        "Einsatz-Sensoren bleiben leer.",
+                        scope,
                     )
                     self.reports_permission_denied = True
                 return None
@@ -146,33 +145,21 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         _LOGGER.debug("STEIN fetching reports for BUs %s updated since %s", self.bu_ids, updated_since)
 
-        since = None if self._reports_omit_since else updated_since
-        try:
-            raw = await self._safe_get(
-                lambda: self.api.get_reports(self.bu_ids, since),
-                "reports",
-                reraise_400=since is not None,
-            )
-        except SteinApiError as err:
-            # Format von updatedSince ist nicht offiziell dokumentiert –
-            # falls STEIN es ablehnt, ohne Filter weiterarbeiten.
-            _LOGGER.warning(
-                "STEIN reports: Anfrage mit updatedSince abgelehnt (%s) – frage ohne Filter ab",
-                err,
-            )
-            self._reports_omit_since = True
-            raw = await self._safe_get(
-                lambda: self.api.get_reports(self.bu_ids, None), "reports"
-            )
+        raw = await self._safe_get(
+            lambda: self.api.get_reports(updated_since), "reports"
+        )
         if raw is None:
             return
 
         self._reports_last_fetched = now
 
+        # The endpoint has no BU filter – keep only reports of configured BUs
         new_report_map: dict[int, dict] = {}
         for r in raw:
             rid = r.get("id")
-            if rid is not None:
+            if rid is None:
+                continue
+            if any(report_belongs_to_bu(r, bid) for bid in self.bu_ids):
                 new_report_map[rid] = r
 
         # Detect changes and fire events

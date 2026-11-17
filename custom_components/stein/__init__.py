@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import secrets
 
 import voluptuous as vol
 
@@ -16,9 +17,11 @@ from .const import (
     CONF_API_TOKEN,
     CONF_BU_IDS,
     CONF_SCAN_INTERVAL,
+    CONF_WEBHOOK_ID,
     DEFAULT_SCAN_INTERVAL,
 )
 from .coordinator import SteinCoordinator
+from .webhook import async_setup_webhook, async_teardown_webhook, webhook_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +75,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    # Webhook für STEIN-Push (URL im OV-Datensatz von STEIN eintragen)
+    if CONF_WEBHOOK_ID not in entry.data:
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_WEBHOOK_ID: secrets.token_hex(16)}
+        )
+    webhook_id = entry.data[CONF_WEBHOOK_ID]
+    async_setup_webhook(hass, coordinator, webhook_id)
+    coordinator.webhook_url = webhook_url(hass, webhook_id)
+    entry.async_on_unload(lambda: async_teardown_webhook(hass, webhook_id))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
