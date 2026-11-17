@@ -46,6 +46,9 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.reports_permission_denied: bool = False
 
         self._refresh_count = 0
+        # Last payload received via STEIN webhook (for inspection)
+        self.last_webhook: dict | None = None
+        self.webhook_url: str | None = None
 
     async def _safe_get(
         self,

@@ -5,6 +5,7 @@ CONF_API_TOKEN = "api_token"
 CONF_BU_IDS = "bu_ids"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_WEBHOOK_ENABLED = "webhook_enabled"
+CONF_WEBHOOK_ID = "webhook_id"
 
 DEFAULT_SCAN_INTERVAL = 300  # 5 Minuten – Rate-Limit beachten (max 20 req/min)
 DEFAULT_API_BASE = "https://stein.app/api"  # Basis, Pfade beginnen mit /api/ext/...
@@ -44,6 +45,7 @@ STATUS_LABELS = {
 EVENT_STEIN_NEW_REPORT     = "stein_new_report"
 EVENT_STEIN_UPDATED_REPORT = "stein_updated_report"
 EVENT_STEIN_CLOSED_REPORT  = "stein_report_closed"
+EVENT_STEIN_WEBHOOK        = "stein_webhook"
 
 # artTechUnterstuetzung labels
 ART_LABELS = {

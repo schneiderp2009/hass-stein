@@ -4,7 +4,7 @@
   "version": "1.0.48",
   "documentation": "https://stein.app",
   "issue_tracker": "",
-  "dependencies": [],
+  "dependencies": ["webhook"],
   "codeowners": [],
   "requirements": [],
   "config_flow": true,
