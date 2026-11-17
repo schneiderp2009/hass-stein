@@ -4,13 +4,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import SteinApi, SteinApiError, SteinAuthError
 from .const import DOMAIN, EVENT_STEIN_NEW_REPORT, EVENT_STEIN_UPDATED_REPORT, EVENT_STEIN_CLOSED_REPORT
@@ -37,6 +38,8 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Reports: keyed by report id, value is full report dict
         self.reports: dict[int, dict] = {}
+        # Finished reports of the current year, keyed by report id
+        self.finished_reports: dict[int, dict] = {}
         # Timestamp of last successful reports fetch (UNIX)
         self._reports_last_fetched: int = 0
         # Set to True after a 403 – stops further report fetching until HA restart
@@ -106,6 +109,22 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         active.sort(key=_report_sort_key, reverse=True)
         return active
 
+    def last_finished_report(self, bu_id: int) -> dict | None:
+        """The most recently ended report of a BU in the current year."""
+        done = [r for r in self.finished_reports.values() if report_belongs_to_bu(r, bu_id)]
+        if not done:
+            return None
+        return max(done, key=_finished_sort_key)
+
+    def reports_this_year(self, bu_id: int) -> int:
+        """Number of reports (active + finished) of a BU started this year."""
+        year = _current_year()
+        return sum(
+            1
+            for r in (*self.reports.values(), *self.finished_reports.values())
+            if report_belongs_to_bu(r, bu_id) and report_year(r) == year
+        )
+
     def current_report(self, bu_id: int) -> dict | None:
         """The most recent unfinished report of a BU, or None."""
         active = self.active_reports(bu_id)
@@ -117,9 +136,10 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return  # 403 bereits erhalten – kein weiterer Versuch
         now = int(time.time())
 
-        # On first fetch, look back a full year to catch all active reports
+        # On first fetch, look back a full year (at least to Jahresbeginn) to
+        # catch all active reports and all of this year's finished ones
         if self._reports_last_fetched == 0:
-            updated_since = now - _REPORTS_INITIAL_LOOKBACK
+            updated_since = min(now - _REPORTS_INITIAL_LOOKBACK, _start_of_year_ts())
         else:
             # Look back a little extra to avoid missing anything at boundary
             updated_since = self._reports_last_fetched - 60
@@ -186,9 +206,15 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Merge new data into self.reports, then drop finished ones to prevent unbounded growth.
         # Events are fired above before this point, so the transition is already captured.
+        # Finished ones of the current year are kept in self.finished_reports
+        # (für "Letzter Einsatz" und "Einsätze dieses Jahr").
         self.reports.update(new_report_map)
         for rid in [rid for rid, r in self.reports.items() if r.get("finished", False)]:
-            del self.reports[rid]
+            report = self.reports.pop(rid)
+            self.finished_reports[rid] = report
+        year = _current_year()
+        for rid in [rid for rid, r in self.finished_reports.items() if report_year(r) != year]:
+            del self.finished_reports[rid]
 
     async def _send_persistent_notification(self, report: dict, new: bool) -> None:
         """Create or update a persistent notification for an active report."""
@@ -259,7 +285,13 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await asyncio.sleep(1)
         await self._fetch_reports()
 
-        return {"assets": self.assets, "bus": self.bus, "userinfo": self.userinfo, "reports": self.reports}
+        return {
+            "assets": self.assets,
+            "bus": self.bus,
+            "userinfo": self.userinfo,
+            "reports": self.reports,
+            "finished_reports": self.finished_reports,
+        }
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -309,5 +341,36 @@ def report_belongs_to_bu(report: dict, bu_id: int) -> bool:
 def _report_sort_key(report: dict) -> tuple[str, int]:
     return (
         str(report.get("einsatzbeginn") or report.get("created") or ""),
+        int(report.get("id") or 0),
+    )
+
+
+def _current_year() -> int:
+    return dt_util.now().year
+
+
+def _start_of_year_ts() -> int:
+    now = dt_util.now()
+    return int(now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0).timestamp())
+
+
+def report_year(report: dict) -> int | None:
+    """Year of Einsatzbeginn (fallback: created) in HA local time."""
+    raw = report.get("einsatzbeginn") or report.get("created")
+    if not raw:
+        return None
+    parsed = dt_util.parse_datetime(str(raw))
+    if parsed is None:
+        try:
+            return datetime.fromisoformat(str(raw)[:10]).year
+        except ValueError:
+            return None
+    return dt_util.as_local(parsed).year
+
+
+def _finished_sort_key(report: dict) -> tuple[str, str, int]:
+    return (
+        str(report.get("einsatzende") or ""),
+        str(report.get("lastModified") or ""),
         int(report.get("id") or 0),
     )

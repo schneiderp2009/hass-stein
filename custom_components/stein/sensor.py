@@ -62,6 +62,8 @@ async def async_setup_entry(
     for bu_id in coordinator.bu_ids:
         entities.append(SteinActiveReportsSummarySensor(coordinator, bu_id))
         entities.append(SteinCurrentReportSensor(coordinator, bu_id))
+        entities.append(SteinLastReportSensor(coordinator, bu_id))
+        entities.append(SteinReportsThisYearSensor(coordinator, bu_id))
     for report_id, report in coordinator.reports.items():
         if not report.get("finished", False):
             entities.append(SteinReportSensor(coordinator, report_id))
@@ -413,37 +415,114 @@ class SteinCurrentReportSensor(CoordinatorEntity[SteinCoordinator], SensorEntity
         active = self.coordinator.active_reports(self._bu_id)
         if not r:
             return {"aktiv": False, "anzahl_aktive_einsaetze": 0}
-        assets = r.get("assets") or []
-        bu = r.get("bu") or {}
         return {
             "aktiv":            True,
             "anzahl_aktive_einsaetze": len(active),
-            "einsatz_id":       r.get("id"),
-            "stichwort":        r.get("einsatzStichwort"),
-            "schadenort":       r.get("schadenort"),
-            "schaden":          r.get("schaden"),
-            "einsatzbeginn":    r.get("einsatzbeginn"),
-            "einsatzende":      r.get("einsatzende"),
-            "fahrzeuge":        [a.get("name") or a.get("label") for a in assets],
-            "fahrzeug_ids":     [a.get("id") for a in assets],
-            "einsatzkraefte":   report_ek_total(r),
-            "anzahl_ek1":       r.get("anzahlEk1") or 0,
-            "anzahl_ek2":       r.get("anzahlEk2") or 0,
-            "anzahl_ek3":       r.get("anzahlEk3") or 0,
-            "fuehrende_bu":     bu.get("name"),
-            "fuehrende_bu_id":  bu.get("id"),
-            "zuletzt_geaendert": r.get("lastModified"),
+            **_report_summary_attrs(r),
         }
 
     @property
     def device_info(self) -> DeviceInfo:
-        bu = self.coordinator.bus.get(self._bu_id, {})
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"bu_{self._bu_id}")},
-            name=f"STEIN BU {bu.get('name', self._bu_id)}",
-            manufacturer="STEIN",
-            model="Ortsverband",
-        )
+        return _bu_device_by_id(self.coordinator, self._bu_id)
+
+
+def _bu_device_by_id(coordinator: SteinCoordinator, bu_id: int) -> DeviceInfo:
+    bu = coordinator.bus.get(bu_id, {})
+    return DeviceInfo(
+        identifiers={(DOMAIN, f"bu_{bu_id}")},
+        name=f"STEIN BU {bu.get('name', bu_id)}",
+        manufacturer="STEIN",
+        model="Ortsverband",
+    )
+
+
+def _report_summary_attrs(r: dict) -> dict[str, Any]:
+    """Compact Einsatz attributes shared by 'Aktueller' and 'Letzter Einsatz'."""
+    assets = r.get("assets") or []
+    bu = r.get("bu") or {}
+    return {
+        "einsatz_id":       r.get("id"),
+        "stichwort":        r.get("einsatzStichwort"),
+        "schadenort":       r.get("schadenort"),
+        "schaden":          r.get("schaden"),
+        "einsatzbeginn":    r.get("einsatzbeginn"),
+        "einsatzende":      r.get("einsatzende"),
+        "fahrzeuge":        [a.get("name") or a.get("label") for a in assets],
+        "fahrzeug_ids":     [a.get("id") for a in assets],
+        "einsatzkraefte":   report_ek_total(r),
+        "anzahl_ek1":       r.get("anzahlEk1") or 0,
+        "anzahl_ek2":       r.get("anzahlEk2") or 0,
+        "anzahl_ek3":       r.get("anzahlEk3") or 0,
+        "fuehrende_bu":     bu.get("name"),
+        "fuehrende_bu_id":  bu.get("id"),
+        "zuletzt_geaendert": r.get("lastModified"),
+    }
+
+
+class SteinLastReportSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
+    """Most recently finished Einsatz of a BU in the current year."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:clipboard-check"
+
+    def __init__(self, coordinator: SteinCoordinator, bu_id: int) -> None:
+        super().__init__(coordinator)
+        self._bu_id = bu_id
+        self._attr_unique_id = f"stein_bu_{bu_id}_letzter_einsatz"
+        self.entity_id = f"sensor.stein_bu_{bu_id}_letzter_einsatz"
+
+    @property
+    def name(self) -> str:
+        return "Letzter Einsatz"
+
+    @property
+    def native_value(self) -> str:
+        r = self.coordinator.last_finished_report(self._bu_id)
+        if not r:
+            return "Kein Einsatz"
+        return r.get("einsatzStichwort") or f"Einsatz #{r.get('id')}"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        r = self.coordinator.last_finished_report(self._bu_id)
+        return _report_summary_attrs(r) if r else {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return _bu_device_by_id(self.coordinator, self._bu_id)
+
+
+class SteinReportsThisYearSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
+    """Number of Einsätze (laufend + abgeschlossen) begun in the current year."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:counter"
+    _attr_native_unit_of_measurement = "Einsätze"
+
+    def __init__(self, coordinator: SteinCoordinator, bu_id: int) -> None:
+        super().__init__(coordinator)
+        self._bu_id = bu_id
+        self._attr_unique_id = f"stein_bu_{bu_id}_einsaetze_jahr"
+        self.entity_id = f"sensor.stein_bu_{bu_id}_einsaetze_dieses_jahr"
+
+    @property
+    def name(self) -> str:
+        return "Einsätze dieses Jahr"
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.reports_this_year(self._bu_id)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "laufend": len(self.coordinator.active_reports(self._bu_id)),
+            "einsatz_api_verfuegbar": not self.coordinator.reports_permission_denied,
+        }
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return _bu_device_by_id(self.coordinator, self._bu_id)
 
 
 class SteinReportSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
