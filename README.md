@@ -117,7 +117,7 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 | `sensor.stein_bu_{bu_id}_einsaetze_dieses_jahr` | Sensor | Anzahl Einsätze (laufend + abgeschlossen) mit Beginn im aktuellen Jahr |
 | `sensor.stein_report_{id}` | Sensor | Ein Sensor je aktivem Einsatz mit allen Feldern |
 
-> Einsätze kommen von `GET /api/ext/reports/full?buIds=[…]`. Die BU-IDs stammen aus der Einrichtung der Integration. Bei neuen Einsätzen feuert die Integration die Events `stein_new_report`, `stein_updated_report` und `stein_report_closed` und legt eine Benachrichtigung in HA an.
+> Einsätze kommen von `GET /api/ext/reports/full?updatedSince=<UNIX-Zeit>` und werden lokal auf die eingerichteten BU-IDs gefiltert (führende oder beteiligte BU). **Dieser Endpunkt ist laut STEIN nur mit Headquarter-Berechtigung nutzbar.** Mit einem OV-Key (Scope `bu_…`) antwortet STEIN mit HTTP 403; die Einsatz-Sensoren bleiben dann leer und zeigen `einsatz_api_verfuegbar: false`. Bei neuen Einsätzen feuert die Integration die Events `stein_new_report`, `stein_updated_report` und `stein_report_closed` und legt eine Benachrichtigung in HA an.
 
 ---
 

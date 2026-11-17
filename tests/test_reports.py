@@ -45,31 +45,28 @@ def test_helpers():
     assert report_belongs_to_bu(r2, 19)
 
 
-async def test_coordinator_passes_bu_ids(hass: HomeAssistant):
-    api = _api([make_report()])
+async def test_coordinator_filters_reports_to_configured_bus(hass: HomeAssistant):
+    api = _api([
+        make_report(1),
+        make_report(2, bu_id=55),
+        make_report(3, bu_id=55, beteiligteBus=[{"id": 19}]),
+    ])
     coord = SteinCoordinator(hass, api, [19], 300)
     await coord._fetch_reports()
 
-    args = api.get_reports.await_args.args
-    assert args[0] == [19]
-    assert isinstance(args[1], int)
-    assert coord.current_report(19)["id"] == 1
+    (since,) = api.get_reports.await_args.args
+    assert isinstance(since, int)
+    assert set(coord.reports) == {1, 3}
 
 
-async def test_coordinator_falls_back_without_updated_since(hass: HomeAssistant):
+async def test_coordinator_403_disables_reports(hass: HomeAssistant):
     api = _api()
-    api.get_reports.side_effect = [
-        SteinApiError("HTTP 400: bad updatedSince", status=400),
-        [make_report()],
-        [make_report()],
-    ]
+    api.get_reports.side_effect = SteinApiError("HTTP 403: Forbidden", status=403)
     coord = SteinCoordinator(hass, api, [19], 300)
     await coord._fetch_reports()
-    assert api.get_reports.await_args_list[1].args == ([19], None)
-    assert 1 in coord.reports
-
+    assert coord.reports_permission_denied
     await coord._fetch_reports()
-    assert api.get_reports.await_args_list[2].args == ([19], None)
+    assert api.get_reports.await_count == 1
 
 
 async def test_current_report_is_newest_active(hass: HomeAssistant):

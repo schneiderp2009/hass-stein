@@ -1,9 +1,7 @@
 """STEIN API client."""
 from __future__ import annotations
 
-import json
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -113,23 +111,18 @@ class SteinApi:
     async def get_bu(self, bu_id: int) -> dict | None:
         return await self._get(f"/api/ext/bu/{bu_id}")
 
-    async def get_reports(
-        self, bu_ids: list[int], updated_since: int | None = None
-    ) -> list[dict]:
-        """Fetch full reports (Einsätze) for the given BUs.
+    async def get_reports(self, updated_since: int) -> list[dict]:
+        """Fetch all v2.0 reports (Einsätze) updated since a UNIX timestamp.
 
-        STEIN requires ``buIds`` as a JSON array (``buIds=[19]``); without it
-        the endpoint answers HTTP 400 "JSON array expected".
-        ``updatedSince`` is optional and sent as ISO 8601 UTC datetime.
+        Per STEIN OpenAPI spec: ``updatedSince`` is a required integer UNIX
+        timestamp, there is no BU filter (filter client-side), and the
+        endpoint is only accessible with headquarter-level API permissions
+        (otherwise HTTP 403).
         """
-        params: dict[str, str] = {"buIds": json.dumps(list(bu_ids), separators=(",", ":"))}
-        if updated_since is not None:
-            params["updatedSince"] = datetime.fromtimestamp(
-                updated_since, tz=timezone.utc
-            ).strftime("%Y-%m-%dT%H:%M:%SZ")
-        result = await self._get("/api/ext/reports/full", params=params)
+        result = await self._get(
+            "/api/ext/reports/full", params={"updatedSince": int(updated_since)}
+        )
         if isinstance(result, dict):
-            # Be tolerant if the API ever wraps the list
             result = result.get("reports") or result.get("data") or []
         return result or []
 

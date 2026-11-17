@@ -35,38 +35,36 @@ class _FakeSession:
         return _FakeResp(self.status, self.body)
 
 
-async def test_get_reports_sends_buids_as_json_array_and_bearer():
+async def test_get_reports_sends_unix_timestamp_and_bearer():
     session = _FakeSession(body=[{"id": 1}])
     api = SteinApi("API-TOKEN", session)
 
-    result = await api.get_reports([19], 0)
+    result = await api.get_reports(1700000000)
 
     assert result == [{"id": 1}]
     call = session.calls[0]
     assert call["url"] == "https://stein.app/api/api/ext/reports/full"
     assert call["headers"]["Authorization"] == "Bearer API-TOKEN"
-    assert call["params"]["buIds"] == "[19]"
-    assert call["params"]["updatedSince"] == "1970-01-01T00:00:00Z"
+    assert call["params"] == {"updatedSince": 1700000000}
 
 
-async def test_get_reports_multiple_bus_without_since():
-    session = _FakeSession()
-    api = SteinApi("t", session)
-
-    await api.get_reports([19, 20])
-
-    params = session.calls[0]["params"]
-    assert params == {"buIds": "[19,20]"}
-
-
-async def test_get_reports_400_carries_status_and_body():
-    session = _FakeSession(status=400, body={"message": "JSON array expected"})
+async def test_get_reports_403_carries_status():
+    session = _FakeSession(status=403, body={"detail": "Forbidden"})
     api = SteinApi("t", session)
 
     with pytest.raises(SteinApiError) as exc:
-        await api.get_reports([19], 0)
+        await api.get_reports(0)
+    assert exc.value.status == 403
+
+
+async def test_get_reports_400_carries_status_and_body():
+    session = _FakeSession(status=400, body={"message": "invalid updatedSince"})
+    api = SteinApi("t", session)
+
+    with pytest.raises(SteinApiError) as exc:
+        await api.get_reports(0)
     assert exc.value.status == 400
-    assert "JSON array expected" in str(exc.value)
+    assert "invalid updatedSince" in str(exc.value)
 
 
 async def test_get_reports_401_is_auth_error():
@@ -74,4 +72,4 @@ async def test_get_reports_401_is_auth_error():
     api = SteinApi("t", session)
 
     with pytest.raises(SteinAuthError):
-        await api.get_reports([19], 0)
+        await api.get_reports(0)
