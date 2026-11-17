@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import SteinCoordinator
+from .coordinator import SteinCoordinator, report_ek_total
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,11 +51,7 @@ class SteinEinsatzActiveSensor(CoordinatorEntity[SteinCoordinator], BinarySensor
 
     @property
     def _active_reports(self) -> list[dict]:
-        return [
-            r for r in self.coordinator.reports.values()
-            if not r.get("finished", False)
-            and (r.get("bu") or {}).get("id") == self._bu_id
-        ]
+        return self.coordinator.active_reports(self._bu_id)
 
     @property
     def is_on(self) -> bool:
@@ -68,11 +64,18 @@ class SteinEinsatzActiveSensor(CoordinatorEntity[SteinCoordinator], BinarySensor
     @property
     def extra_state_attributes(self) -> dict:
         active = self._active_reports
+        current = active[0] if active else {}
         return {
             "anzahl_aktive_einsaetze": len(active),
             "einsatz_ids": [r.get("id") for r in active],
             "stichwörter": [r.get("einsatzStichwort") for r in active if r.get("einsatzStichwort")],
             "schadenorte": [r.get("schadenort") for r in active if r.get("schadenort")],
+            "aktueller_einsatz_id": current.get("id"),
+            "aktueller_einsatz_stichwort": current.get("einsatzStichwort"),
+            "aktueller_einsatz_schadenort": current.get("schadenort"),
+            "aktueller_einsatz_beginn": current.get("einsatzbeginn"),
+            "aktueller_einsatz_einsatzkraefte": report_ek_total(current) if current else None,
+            "einsatz_api_verfuegbar": not self.coordinator.reports_permission_denied,
         }
 
     @property

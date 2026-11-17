@@ -26,6 +26,7 @@
 | ⚙️ | **Service** | Alle Felder per Automation oder Skript änderbar |
 | 🔁 | **Auto-Discovery** | Neue Assets werden automatisch erkannt und als Entities angelegt |
 | 🔄 | **Dashboard-Generator** | Script generiert das Dashboard automatisch aus den echten Entity-IDs |
+| 🚨 | **Einsätze** | Binärsensor „Einsatz aktiv“ und Sensor „Aktueller Einsatz“ mit Stichwort, Ort, Schaden, Fahrzeugen und Einsatzkräften |
 | 🔒 | **Rate-Limit-Schutz** | 429-Fehler werden automatisch mit Retry behandelt |
 
 ---
@@ -109,6 +110,12 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 |---|---|---|
 | `sensor.stein_bu_{bu_id}` | Sensor | Ortsverband-Daten, Statistiken, Kontakt |
 | `sensor.stein_api_stein_verbindung` | Sensor | Aktiver API-Nutzer, Scope, Berechtigungen |
+| `binary_sensor.stein_bu_{bu_id}_einsatz_aktiv` | Binärsensor | `an`, solange ein nicht abgeschlossener Einsatz existiert |
+| `sensor.stein_bu_{bu_id}_aktueller_einsatz` | Sensor | Stichwort des neuesten aktiven Einsatzes bzw. „Kein Einsatz“; Attribute: `schadenort`, `schaden`, `einsatzbeginn`, `einsatzende`, `fahrzeuge`, `einsatzkraefte`, … |
+| `sensor.stein_bu_{bu_id}_aktive_einsaetze` | Sensor | Anzahl aktiver Einsätze |
+| `sensor.stein_report_{id}` | Sensor | Ein Sensor je aktivem Einsatz mit allen Feldern |
+
+> Einsätze kommen von `GET /api/ext/reports/full?buIds=[…]`. Die BU-IDs stammen aus der Einrichtung der Integration. Bei neuen Einsätzen feuert die Integration die Events `stein_new_report`, `stein_updated_report` und `stein_report_closed` und legt eine Benachrichtigung in HA an.
 
 ---
 

@@ -7,6 +7,7 @@ import time
 from datetime import timedelta
 from typing import Any
 
+from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -40,13 +41,23 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._reports_last_fetched: int = 0
         # Set to True after a 403 – stops further report fetching until HA restart
         self.reports_permission_denied: bool = False
+        # Set after STEIN rejected updatedSince with HTTP 400
+        self._reports_omit_since: bool = False
 
         self._refresh_count = 0
 
-    async def _safe_get(self, coro_factory, description: str, raises: bool = False):
+    async def _safe_get(
+        self,
+        coro_factory,
+        description: str,
+        raises: bool = False,
+        reraise_400: bool = False,
+    ):
         """Run a coroutine factory, wait and retry once on 429.
 
         raises=True: non-recoverable errors become UpdateFailed instead of None.
+        reraise_400=True: an HTTP 400 is re-raised as SteinApiError so the
+        caller can retry with different parameters.
         """
         try:
             return await coro_factory()
@@ -56,7 +67,9 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # NICHT gelöscht werden.
             raise ConfigEntryAuthFailed(f"STEIN {description} error: Invalid API token") from err
         except SteinApiError as err:
-            if "429" in str(err):
+            if reraise_400 and err.status == 400:
+                raise
+            if err.status == 429:
                 _LOGGER.warning("STEIN 429 on %s – waiting %ss", description, _RATE_LIMIT_DELAY)
                 await asyncio.sleep(_RATE_LIMIT_DELAY)
                 try:
@@ -66,13 +79,14 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         raise UpdateFailed(f"STEIN {description} failed after retry: {retry_err}") from retry_err
                     _LOGGER.warning("STEIN retry failed for %s: %s", description, retry_err)
                     return None
-            if "403" in str(err):
-                # 403 = fehlende Berechtigung (Headquarter-Level erforderlich)
+            if err.status == 403:
+                # 403 = fehlende Berechtigung für diesen Endpunkt.
                 # Kein Warning-Spam – einmalig loggen, danach nicht mehr versuchen
                 if description == "reports":
-                    _LOGGER.info(
-                        "STEIN: Reports-API nicht verfügbar (HTTP 403 – Headquarter-Berechtigung "
-                        "erforderlich). Report-Funktionen deaktiviert."
+                    _LOGGER.warning(
+                        "STEIN: Einsatz-API nicht freigegeben (HTTP 403: %s). "
+                        "Einsatz-Funktionen deaktiviert bis zum Neustart.",
+                        err,
                     )
                     self.reports_permission_denied = True
                 return None
@@ -80,6 +94,22 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed(f"STEIN {description} error: {err}") from err
             _LOGGER.warning("STEIN error on %s: %s", description, err)
             return None
+
+    # ── Report helpers used by the entities ───────────────────────────────────
+
+    def active_reports(self, bu_id: int) -> list[dict]:
+        """All unfinished reports of a BU, newest Einsatzbeginn first."""
+        active = [
+            r for r in self.reports.values()
+            if not r.get("finished", False) and report_belongs_to_bu(r, bu_id)
+        ]
+        active.sort(key=_report_sort_key, reverse=True)
+        return active
+
+    def current_report(self, bu_id: int) -> dict | None:
+        """The most recent unfinished report of a BU, or None."""
+        active = self.active_reports(bu_id)
+        return active[0] if active else None
 
     async def _fetch_reports(self) -> None:
         """Fetch reports, detect new/updated/closed ones and fire HA events."""
@@ -94,11 +124,26 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Look back a little extra to avoid missing anything at boundary
             updated_since = self._reports_last_fetched - 60
 
-        _LOGGER.debug("STEIN fetching reports updated since %s", updated_since)
+        _LOGGER.debug("STEIN fetching reports for BUs %s updated since %s", self.bu_ids, updated_since)
 
-        raw = await self._safe_get(
-            lambda: self.api.get_reports(updated_since), "reports"
-        )
+        since = None if self._reports_omit_since else updated_since
+        try:
+            raw = await self._safe_get(
+                lambda: self.api.get_reports(self.bu_ids, since),
+                "reports",
+                reraise_400=since is not None,
+            )
+        except SteinApiError as err:
+            # Format von updatedSince ist nicht offiziell dokumentiert –
+            # falls STEIN es ablehnt, ohne Filter weiterarbeiten.
+            _LOGGER.warning(
+                "STEIN reports: Anfrage mit updatedSince abgelehnt (%s) – frage ohne Filter ab",
+                err,
+            )
+            self._reports_omit_since = True
+            raw = await self._safe_get(
+                lambda: self.api.get_reports(self.bu_ids, None), "reports"
+            )
         if raw is None:
             return
 
@@ -150,13 +195,9 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         rid = report.get("id")
         stichwort = report.get("einsatzStichwort") or "–"
         schadenort = report.get("schadenort") or "–"
-        assets = report.get("assets", [])
+        assets = report.get("assets") or []
         asset_names = ", ".join(a.get("name") or a.get("label") or str(a.get("id","")) for a in assets) or "–"
-        ek_total = (
-            report.get("anzahlEk1", 0) +
-            report.get("anzahlEk2", 0) +
-            report.get("anzahlEk3", 0)
-        )
+        ek_total = report_ek_total(report)
         prefix = "🚨 Neuer Einsatz" if new else "🔄 Einsatz aktualisiert"
 
         message = (
@@ -166,23 +207,22 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             f"👥 EK-Kräfte: {ek_total}\n"
             f"📋 Einsatz-ID: #{rid}"
         )
-        await self.hass.services.async_call(
-            "persistent_notification",
-            "create",
-            {
-                "title": f"{prefix} #{rid}",
-                "message": message,
-                "notification_id": f"stein_report_{rid}",
-            },
-        )
+        try:
+            persistent_notification.async_create(
+                self.hass,
+                message,
+                title=f"{prefix} #{rid}",
+                notification_id=f"stein_report_{rid}",
+            )
+        except Exception as err:  # noqa: BLE001 – Benachrichtigung darf Update nicht abbrechen
+            _LOGGER.warning("STEIN: Benachrichtigung für Einsatz #%s fehlgeschlagen: %s", rid, err)
 
     async def _dismiss_persistent_notification(self, report_id: int) -> None:
         """Dismiss the persistent notification when a report is closed."""
-        await self.hass.services.async_call(
-            "persistent_notification",
-            "dismiss",
-            {"notification_id": f"stein_report_{report_id}"},
-        )
+        try:
+            persistent_notification.async_dismiss(self.hass, f"stein_report_{report_id}")
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug("STEIN: Benachrichtigung #%s nicht entfernt: %s", report_id, err)
 
     async def _async_update_data(self) -> dict[str, Any]:
         self._refresh_count += 1
@@ -226,7 +266,7 @@ class SteinCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
 def _report_event_data(report: dict) -> dict:
     """Build the payload for HA event firing – only the most relevant fields."""
-    assets = report.get("assets", [])
+    assets = report.get("assets") or []
     return {
         "report_id":       report.get("id"),
         "einsatz_stichwort": report.get("einsatzStichwort"),
@@ -234,11 +274,7 @@ def _report_event_data(report: dict) -> dict:
         "einsatzbeginn":   report.get("einsatzbeginn"),
         "finished":        report.get("finished", False),
         "meldeschwellen":  report.get("meldeschwellen", []),
-        "anzahl_ek":       (
-            report.get("anzahlEk1", 0) +
-            report.get("anzahlEk2", 0) +
-            report.get("anzahlEk3", 0)
-        ),
+        "anzahl_ek":       report_ek_total(report),
         "asset_ids":  [a.get("id")   for a in assets],
         "asset_names":[a.get("name") or a.get("label") for a in assets],
         "bu_id":      report.get("bu", {}).get("id") if report.get("bu") else None,
@@ -256,3 +292,22 @@ def _report_changed(old: dict, new: dict) -> bool:
         if old.get(key) != new.get(key):
             return True
     return False
+
+
+def report_ek_total(report: dict) -> int:
+    """Sum of Einsatzkräfte (EK1–EK3); tolerates null values."""
+    return sum(int(report.get(k) or 0) for k in ("anzahlEk1", "anzahlEk2", "anzahlEk3"))
+
+
+def report_belongs_to_bu(report: dict, bu_id: int) -> bool:
+    """True if the BU leads the report or is listed as beteiligte BU."""
+    if (report.get("bu") or {}).get("id") == bu_id:
+        return True
+    return any((b or {}).get("id") == bu_id for b in report.get("beteiligteBus") or [])
+
+
+def _report_sort_key(report: dict) -> tuple[str, int]:
+    return (
+        str(report.get("einsatzbeginn") or report.get("created") or ""),
+        int(report.get("id") or 0),
+    )
