@@ -113,6 +113,8 @@ Nach der Einrichtung erscheinen folgende Entitäten **pro Asset**:
 | `binary_sensor.stein_bu_{bu_id}_einsatz_aktiv` | Binärsensor | `an`, solange ein nicht abgeschlossener Einsatz existiert |
 | `sensor.stein_bu_{bu_id}_aktueller_einsatz` | Sensor | Stichwort des neuesten aktiven Einsatzes bzw. „Kein Einsatz“; Attribute: `schadenort`, `schaden`, `einsatzbeginn`, `einsatzende`, `fahrzeuge`, `einsatzkraefte`, … |
 | `sensor.stein_bu_{bu_id}_aktive_einsaetze` | Sensor | Anzahl aktiver Einsätze |
+| `sensor.stein_bu_{bu_id}_letzter_einsatz` | Sensor | Stichwort des zuletzt beendeten Einsatzes (aktuelles Jahr), gleiche Attribute wie „Aktueller Einsatz“ |
+| `sensor.stein_bu_{bu_id}_einsaetze_dieses_jahr` | Sensor | Anzahl Einsätze (laufend + abgeschlossen) mit Beginn im aktuellen Jahr |
 | `sensor.stein_report_{id}` | Sensor | Ein Sensor je aktivem Einsatz mit allen Feldern |
 
 > Einsätze kommen von `GET /api/ext/reports/full?buIds=[…]`. Die BU-IDs stammen aus der Einrichtung der Integration. Bei neuen Einsätzen feuert die Integration die Events `stein_new_report`, `stein_updated_report` und `stein_report_closed` und legt eine Benachrichtigung in HA an.

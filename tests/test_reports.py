@@ -15,6 +15,9 @@ from custom_components.stein.coordinator import (
 
 from .conftest import make_report
 
+# Testdaten liegen in 2026 – Zeit fixieren, damit "dieses Jahr" stabil bleibt
+pytestmark = pytest.mark.freeze_time("2026-11-17 13:00:00+00:00")
+
 
 def _api(reports=None):
     api = AsyncMock()
@@ -117,3 +120,56 @@ async def test_entities_without_einsatz(hass: HomeAssistant):
 
     assert hass.states.get("binary_sensor.stein_bu_19_einsatz_aktiv").state == "off"
     assert hass.states.get("sensor.stein_bu_19_aktueller_einsatz").state == "Kein Einsatz"
+
+
+async def test_finished_reports_kept_for_this_year(hass: HomeAssistant):
+    api = _api([
+        make_report(1, finished=True, einsatzbeginn="2026-03-01T08:00:00Z",
+                    einsatzende="2026-03-01T12:00:00Z", einsatzStichwort="Hochwasser"),
+        make_report(2, finished=True, einsatzbeginn="2026-10-05T08:00:00Z",
+                    einsatzende="2026-10-05T18:00:00Z", einsatzStichwort="Sturm"),
+        make_report(3, finished=True, einsatzbeginn="2025-12-30T08:00:00Z",
+                    einsatzende="2025-12-30T10:00:00Z"),
+        make_report(4, einsatzbeginn="2026-11-17T10:00:00Z"),
+    ])
+    coord = SteinCoordinator(hass, api, [19], 300)
+    await coord._fetch_reports()
+
+    assert set(coord.finished_reports) == {1, 2}
+    assert coord.last_finished_report(19)["einsatzStichwort"] == "Sturm"
+    assert coord.reports_this_year(19) == 3  # 1, 2 und der laufende 4
+
+
+async def test_active_report_moves_to_finished(hass: HomeAssistant):
+    api = _api([make_report(5, einsatzbeginn="2026-11-17T10:00:00Z")])
+    coord = SteinCoordinator(hass, api, [19], 300)
+    await coord._fetch_reports()
+    assert coord.current_report(19)["id"] == 5
+    assert coord.last_finished_report(19) is None
+
+    api.get_reports.return_value = [
+        make_report(5, finished=True, einsatzbeginn="2026-11-17T10:00:00Z",
+                    einsatzende="2026-11-17T14:00:00Z")
+    ]
+    await coord._fetch_reports()
+    assert coord.current_report(19) is None
+    assert coord.last_finished_report(19)["id"] == 5
+    assert coord.reports_this_year(19) == 1
+
+
+async def test_last_einsatz_and_year_counter_entities(hass: HomeAssistant):
+    api = _api([
+        make_report(7, finished=True, einsatzbeginn="2026-09-01T08:00:00Z",
+                    einsatzende="2026-09-01T15:00:00Z", einsatzStichwort="Ölspur"),
+        make_report(8, einsatzbeginn="2026-11-17T10:00:00Z"),
+    ])
+    await _setup(hass, api)
+
+    last = hass.states.get("sensor.stein_bu_19_letzter_einsatz")
+    assert last.state == "Ölspur"
+    assert last.attributes["einsatzende"] == "2026-09-01T15:00:00Z"
+    assert last.attributes["fahrzeuge"] == ["GKW", "MTW"]
+    assert last.attributes["einsatzkraefte"] == 7
+
+    assert hass.states.get("sensor.stein_bu_19_einsaetze_dieses_jahr").state == "2"
+    assert hass.states.get("sensor.stein_bu_19_aktueller_einsatz").state == "THL Unwetter"
