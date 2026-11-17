@@ -227,16 +227,6 @@ action:
 
 ---
 
-## 🔔 STEIN-Webhook (Test)
-
-Die Integration stellt eine Webhook-URL bereit, die STEIN bei Änderungen aufrufen kann. Die URL steht im Attribut `webhook_url` von `sensor.stein_webhook`.
-
-1. URL aus `sensor.stein_webhook` kopieren. HA muss von außen erreichbar sein, z. B. über Nabu Casa oder eine eigene Domain.
-2. In STEIN im Ortsverband unter Webhook-URL eintragen. Ein Secret ist optional.
-3. Jeder Aufruf wird ins Log geschrieben („STEIN webhook empfangen“) und als Payload in `sensor.stein_webhook` angezeigt. Zusätzlich feuert das Event `stein_webhook`, und die Daten werden sofort aktualisiert.
-
-Welche Ereignisse STEIN schickt, ist nicht dokumentiert. Der Webhook dient vorerst dazu, das herauszufinden.
-
 ## 🛠️ Service: `stein.update_asset`
 
 Alle Felder eines Assets per Automation oder Skript ändern:

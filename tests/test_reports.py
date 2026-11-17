@@ -170,3 +170,21 @@ async def test_last_einsatz_and_year_counter_entities(hass: HomeAssistant):
 
     assert hass.states.get("sensor.stein_bu_19_einsaetze_dieses_jahr").state == "2"
     assert hass.states.get("sensor.stein_bu_19_aktueller_einsatz").state == "THL Unwetter"
+
+
+async def test_cleanup_of_removed_webhook(hass: HomeAssistant):
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_API_TOKEN: "t", CONF_BU_IDS: [19], "webhook_id": "abc"},
+    )
+    entry.add_to_hass(hass)
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create("sensor", DOMAIN, "stein_webhook", config_entry=entry)
+    with patch("custom_components.stein.SteinApi", return_value=_api([])):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert "webhook_id" not in entry.data
+    assert ent_reg.async_get_entity_id("sensor", DOMAIN, "stein_webhook") is None

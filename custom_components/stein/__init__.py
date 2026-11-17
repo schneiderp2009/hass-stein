@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import logging
-import secrets
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
 
 from .api import SteinApi
@@ -17,11 +17,9 @@ from .const import (
     CONF_API_TOKEN,
     CONF_BU_IDS,
     CONF_SCAN_INTERVAL,
-    CONF_WEBHOOK_ID,
     DEFAULT_SCAN_INTERVAL,
 )
 from .coordinator import SteinCoordinator
-from .webhook import async_setup_webhook, async_teardown_webhook, webhook_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,15 +74,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
-    # Webhook für STEIN-Push (URL im OV-Datensatz von STEIN eintragen)
-    if CONF_WEBHOOK_ID not in entry.data:
+    # Aufräumen: Webhook-ID aus v1.0.48 entfernen (Webhook wurde wieder ausgebaut)
+    if "webhook_id" in entry.data:
         hass.config_entries.async_update_entry(
-            entry, data={**entry.data, CONF_WEBHOOK_ID: secrets.token_hex(16)}
+            entry, data={k: v for k, v in entry.data.items() if k != "webhook_id"}
         )
-    webhook_id = entry.data[CONF_WEBHOOK_ID]
-    async_setup_webhook(hass, coordinator, webhook_id)
-    coordinator.webhook_url = webhook_url(hass, webhook_id)
-    entry.async_on_unload(lambda: async_teardown_webhook(hass, webhook_id))
+    ent_reg = er.async_get(hass)
+    if old_id := ent_reg.async_get_entity_id("sensor", DOMAIN, "stein_webhook"):
+        ent_reg.async_remove(old_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
