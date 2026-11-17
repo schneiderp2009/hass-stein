@@ -47,10 +47,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: SteinCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities: list[SensorEntity] = [
-        SteinUserinfoSensor(coordinator),
-        SteinWebhookSensor(coordinator),
-    ]
+    entities: list[SensorEntity] = [SteinUserinfoSensor(coordinator)]
 
     # Asset sensors
     for asset_id in coordinator.assets:
@@ -317,46 +314,6 @@ class SteinUserinfoSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
             "scope_role_entity":     sr.get("entity"),
             "scope_role_permission": sr.get("permission"),
             "scope_role_entity_id":  sr.get("entityId"),
-        }
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            identifiers={(DOMAIN, "stein_connection")},
-            name="STEIN API",
-            manufacturer="STEIN",
-            model="API Verbindung",
-        )
-
-
-class SteinWebhookSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
-    """Shows the webhook URL for STEIN and the last received payload."""
-
-    _attr_has_entity_name = True
-    _attr_icon = "mdi:webhook"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator: SteinCoordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = "stein_webhook"
-        self.entity_id = "sensor.stein_webhook"
-
-    @property
-    def name(self) -> str:
-        return "Letzter Webhook"
-
-    @property
-    def native_value(self) -> str:
-        last = self.coordinator.last_webhook
-        return last["received"] if last else "Noch keiner"
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        last = self.coordinator.last_webhook or {}
-        return {
-            "webhook_url": self.coordinator.webhook_url,
-            "header": last.get("headers"),
-            "payload": last.get("payload"),
         }
 
     @property
