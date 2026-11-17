@@ -10,7 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, STATUS_LABELS, ART_LABELS, VORENDE_LABELS
-from .coordinator import SteinCoordinator
+from .coordinator import SteinCoordinator, report_ek_total
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +61,7 @@ async def async_setup_entry(
     # Report sensors – summary + one per active report
     for bu_id in coordinator.bu_ids:
         entities.append(SteinActiveReportsSummarySensor(coordinator, bu_id))
+        entities.append(SteinCurrentReportSensor(coordinator, bu_id))
     for report_id, report in coordinator.reports.items():
         if not report.get("finished", False):
             entities.append(SteinReportSensor(coordinator, report_id))
@@ -345,11 +346,7 @@ class SteinActiveReportsSummarySensor(CoordinatorEntity[SteinCoordinator], Senso
 
     @property
     def _active_reports(self) -> list[dict]:
-        return [
-            r for r in self.coordinator.reports.values()
-            if not r.get("finished", False)
-            and (r.get("bu") or {}).get("id") == self._bu_id
-        ]
+        return self.coordinator.active_reports(self._bu_id)
 
     @property
     def native_value(self) -> int:
@@ -362,6 +359,80 @@ class SteinActiveReportsSummarySensor(CoordinatorEntity[SteinCoordinator], Senso
             "einsatz_ids": [r.get("id") for r in active],
             "stichwörter": [r.get("einsatzStichwort") for r in active],
             "schadenorte":  [r.get("schadenort") for r in active],
+        }
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        bu = self.coordinator.bus.get(self._bu_id, {})
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"bu_{self._bu_id}")},
+            name=f"STEIN BU {bu.get('name', self._bu_id)}",
+            manufacturer="STEIN",
+            model="Ortsverband",
+        )
+
+
+class SteinCurrentReportSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
+    """Stable sensor with the most recent active Einsatz of a BU.
+
+    State: Einsatzstichwort (or "Einsatz #<id>") while an Einsatz is running,
+    otherwise "Kein Einsatz". Entity-ID stays the same, so it can be used
+    directly in dashboards and automations.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator: SteinCoordinator, bu_id: int) -> None:
+        super().__init__(coordinator)
+        self._bu_id = bu_id
+        self._attr_unique_id = f"stein_bu_{bu_id}_aktueller_einsatz"
+        self.entity_id = f"sensor.stein_bu_{bu_id}_aktueller_einsatz"
+
+    @property
+    def name(self) -> str:
+        return "Aktueller Einsatz"
+
+    @property
+    def _current(self) -> dict | None:
+        return self.coordinator.current_report(self._bu_id)
+
+    @property
+    def native_value(self) -> str:
+        r = self._current
+        if not r:
+            return "Kein Einsatz"
+        return r.get("einsatzStichwort") or f"Einsatz #{r.get('id')}"
+
+    @property
+    def icon(self) -> str:
+        return "mdi:alarm-light" if self._current else "mdi:alarm-light-off"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        r = self._current
+        active = self.coordinator.active_reports(self._bu_id)
+        if not r:
+            return {"aktiv": False, "anzahl_aktive_einsaetze": 0}
+        assets = r.get("assets") or []
+        bu = r.get("bu") or {}
+        return {
+            "aktiv":            True,
+            "anzahl_aktive_einsaetze": len(active),
+            "einsatz_id":       r.get("id"),
+            "stichwort":        r.get("einsatzStichwort"),
+            "schadenort":       r.get("schadenort"),
+            "schaden":          r.get("schaden"),
+            "einsatzbeginn":    r.get("einsatzbeginn"),
+            "einsatzende":      r.get("einsatzende"),
+            "fahrzeuge":        [a.get("name") or a.get("label") for a in assets],
+            "fahrzeug_ids":     [a.get("id") for a in assets],
+            "einsatzkraefte":   report_ek_total(r),
+            "anzahl_ek1":       r.get("anzahlEk1") or 0,
+            "anzahl_ek2":       r.get("anzahlEk2") or 0,
+            "anzahl_ek3":       r.get("anzahlEk3") or 0,
+            "fuehrende_bu":     bu.get("name"),
+            "fuehrende_bu_id":  bu.get("id"),
+            "zuletzt_geaendert": r.get("lastModified"),
         }
 
     @property
@@ -411,19 +482,15 @@ class SteinReportSensor(CoordinatorEntity[SteinCoordinator], SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         r = self._report
         bu = r.get("bu") or {}
-        assets = r.get("assets", [])
-        incidents = r.get("incidents", [])
-        tasks = r.get("tasks", [])
-        categories = r.get("categories", [])
-        beteiligte = r.get("beteiligteBus", [])
+        assets = r.get("assets") or []
+        incidents = r.get("incidents") or []
+        tasks = r.get("tasks") or []
+        categories = r.get("categories") or []
+        beteiligte = r.get("beteiligteBus") or []
         project = r.get("project") or {}
         requester = r.get("requester") or {}
         zip_code = r.get("zipCode") or {}
-        ek_total = (
-            r.get("anzahlEk1", 0) +
-            r.get("anzahlEk2", 0) +
-            r.get("anzahlEk3", 0)
-        )
+        ek_total = report_ek_total(r)
         return {
             "id":               r.get("id"),
             "schema_version":   r.get("schemaVersion"),

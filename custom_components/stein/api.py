@@ -1,7 +1,9 @@
 """STEIN API client."""
 from __future__ import annotations
 
+import json
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -13,6 +15,10 @@ _LOGGER = logging.getLogger(__name__)
 
 class SteinApiError(Exception):
     """General STEIN API error."""
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 class SteinAuthError(SteinApiError):
@@ -52,7 +58,10 @@ class SteinApi:
                 if resp.status == 404:
                     return None
                 if resp.status >= 400:
-                    raise SteinApiError(f"HTTP {resp.status}")
+                    raise SteinApiError(
+                        f"HTTP {resp.status}: {await _error_text(resp)}",
+                        status=resp.status,
+                    )
                 return await resp.json(content_type=None)
         except (SteinAuthError, SteinApiError):
             raise
@@ -74,7 +83,10 @@ class SteinApi:
                 if resp.status == 401:
                     raise SteinAuthError("Invalid API token")
                 if resp.status >= 400:
-                    raise SteinApiError(f"HTTP {resp.status}")
+                    raise SteinApiError(
+                        f"HTTP {resp.status}: {await _error_text(resp)}",
+                        status=resp.status,
+                    )
                 return await resp.json(content_type=None)
         except (SteinAuthError, SteinApiError):
             raise
@@ -101,18 +113,24 @@ class SteinApi:
     async def get_bu(self, bu_id: int) -> dict | None:
         return await self._get(f"/api/ext/bu/{bu_id}")
 
-    async def get_reports(self, updated_since: int) -> list[dict]:
-        """Fetch all reports updated since the given timestamp.
+    async def get_reports(
+        self, bu_ids: list[int], updated_since: int | None = None
+    ) -> list[dict]:
+        """Fetch full reports (Einsätze) for the given BUs.
 
-        The API accepts an ISO 8601 datetime string (e.g. 2019-08-24T14:15:22Z).
-        We convert the UNIX timestamp to that format.
+        STEIN requires ``buIds`` as a JSON array (``buIds=[19]``); without it
+        the endpoint answers HTTP 400 "JSON array expected".
+        ``updatedSince`` is optional and sent as ISO 8601 UTC datetime.
         """
-        from datetime import datetime, timezone
-        iso = datetime.fromtimestamp(updated_since, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        result = await self._get(
-            "/api/ext/reports/full",
-            params={"updatedSince": iso},
-        )
+        params: dict[str, str] = {"buIds": json.dumps(list(bu_ids), separators=(",", ":"))}
+        if updated_since is not None:
+            params["updatedSince"] = datetime.fromtimestamp(
+                updated_since, tz=timezone.utc
+            ).strftime("%Y-%m-%dT%H:%M:%SZ")
+        result = await self._get("/api/ext/reports/full", params=params)
+        if isinstance(result, dict):
+            # Be tolerant if the API ever wraps the list
+            result = result.get("reports") or result.get("data") or []
         return result or []
 
     async def test_connection(self) -> bool:
@@ -120,3 +138,12 @@ class SteinApi:
         info = await self.get_userinfo()
         _LOGGER.debug("STEIN userinfo: %s", info)
         return bool(info.get("name"))
+
+
+async def _error_text(resp: aiohttp.ClientResponse) -> str:
+    """Return a short excerpt of an error response body for logging."""
+    try:
+        text = await resp.text()
+    except Exception:  # noqa: BLE001
+        return ""
+    return text.strip()[:300]
